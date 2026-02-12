@@ -1,0 +1,171 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "sending": "Sending...",
+    "noAccount": "Don't have an account?",
+    "contactAdmin": "Contact administrator",
+    "welcome": "Welcome to UoG",
+    "campus": "Campus"
+  },
+  "header": {
+    "subtitle": "Teacher Assessment & Academic Excellence",
+    "secure": "Secure Campus Access",
+    "university": "University of Gondar",
+    "established": "Since 1954"
+  },
+  "badge": {
+    "secure": "UoG Campus Portal",
+    "assessment": "Teacher Assessment System"
+  },
+  "language": {
+    "select": "Select Language",
+    "english": "English",
+    "amharic": "አማርኛ",
+    "oromo": "Afaan Oromoo",
+    "tigrigna": "ትግርኛ",
+    "campus": "Campus Language"
+  },
+  "auth": {
+    "signin": {
+      "title": "Welcome Back, Educator",
+      "subtitle": "Sign in to your campus account",
+      "button": "Sign In",
+      "loading": "Welcoming you...",
+      "welcome": "Great to see you, {{name}}! 🎓"
+    },
+    "reset": {
+      "title": "Reset Password",
+      "subtitle": "We'll send reset instructions to your campus email",
+      "button": "Send Reset Link",
+      "sent": "Check Your Inbox 📧",
+      "checkEmail": "We've sent reset instructions to your campus email address.",
+      "success": "Reset link sent successfully"
+    },
+    "email": {
+      "label": "Campus Email",
+      "placeholder": "firstname.lastname@uog.edu.et",
+      "invalid": "Please enter a valid email address",
+      "university": "Use your official @uog.edu.et email",
+      "required": "Campus email is required"
+    },
+    "password": {
+      "label": "Password",
+      "placeholder": "Enter your password",
+      "minLength": "Password must be at least 6 characters",
+      "forgot": "Forgot password?",
+      "required": "Password is required"
+    }
+  },
+  "validation": {
+    "email": {
+      "required": "Campus email is required",
+      "invalid": "Please enter a valid email",
+      "university": "Must be @uog.edu.et email"
+    },
+    "password": {
+      "required": "Password is required",
+      "minLength": "Password must be at least 6 characters"
+    }
+  },
+  "platform": {
+    "badge": "University of Gondar Teacher Assessment",
+    "heading": {
+      "line1": "Shaping Tomorrow's",
+      "line2": "Educators Today"
+    },
+    "quote": "Every teacher deserves to be celebrated. Every student deserves excellence.",
+    "description": "A centralized platform where student voices shape better teaching, where educators find inspiration to grow, and where academic excellence becomes our shared legacy.",
+    "secure": "Your voice matters. Excellence is our tradition.",
+    "features": {
+      "evaluation": "Semester-based teacher performance evaluation",
+      "security": "Role-based secure campus authentication",
+      "analytics": "Real-time academic insights and reports",
+      "community": "Building better learning together"
+    },
+    "legacy": "Join a community committed to teaching excellence since 1954"
+  },
+  "features": {
+    "teacher": {
+      "title": "Teacher Excellence",
+      "description": "Comprehensive evaluation system to celebrate and improve teaching quality"
+    },
+    "student": {
+      "title": "Student Voice",
+      "description": "Empowering students to share feedback that shapes better learning"
+    },
+    "growth": {
+      "title": "Growth & Development",
+      "description": "Data-driven insights to help educators grow and inspire"
+    }
+  },
+  "stats": {
+    "teachers": "dedicated teachers",
+    "students": "students",
+    "satisfaction": "satisfaction",
+    "years": "years of excellence"
+  },
+  "errors": {
+    "auth": {
+      "title": "Welcome back!",
+      "description": "Let's try that again with your campus email."
+    },
+    "server": {
+      "title": "Connection Issue",
+      "description": "Our campus network is taking a moment. Please try again."
+    },
+    "email": {
+      "invalid": "Campus Email Required",
+      "description": "Please use your official @uog.edu.et email address."
+    },
+    "reset": {
+      "title": "Reset Link Issue",
+      "description": "Visit the IT Help Desk or contact your department office."
+    },
+    "network": {
+      "title": "Network Error",
+      "description": "Please check your connection and try again."
+    }
+  },
+  "success": {
+    "auth": {
+      "title": "Welcome to UoG! 🎓",
+      "description": "Great to see you, {{name}}!"
+    },
+    "reset": {
+      "title": "Check Your Inbox 📧",
+      "description": "We've sent reset instructions to your campus email."
+    }
+  },
+  "footer": {
+    "copyright": "© {{year}} University of Gondar - Teacher Assessment System",
+    "restriction": "Authorized campus personnel only • All activities are logged",
+    "rights": "All rights reserved",
+    "dedicated": "Dedicated to excellence in teaching and learning since 1954"
+  },
+  "dashboard": {
+    "title": "My Dashboard",
+    "overview": "Overview",
+    "profile": "My Profile",
+    "settings": "Settings",
+    "logout": "Sign Out",
+    "welcome": "Welcome back, {{name}}!"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "college": "College Dean",
+    "head": "Department Head",
+    "department": "Department Coordinator",
+    "student": "Student",
+    "teacher": "Teacher"
+  }
+}
