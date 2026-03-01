@@ -17,23 +17,18 @@
     "welcome": "እንኳን ወደ ጎንደር ዩኒቨርሲቲ በደህና መጡ",
     "campus": "ካምፓስ"
   },
-  "header": {
-    "subtitle": "የመምህራን ግምገማ እና የአካዳሚክ ልህቀት",
-    "secure": "አስተማማኝ የካምፓስ መግቢያ",
-    "university": "ጎንደር ዩኒቨርሲቲ",
-    "established": "ከ1954 ጀምሮ"
+  "sidebar": {
+    "colleges": "ኮሌጅዎች",
+    "collegesDesc": "የተቋሙ አስተዳደር",
+    "reports": "ሪፖርቶች",
+    "reportsDesc": "ትንታኔዎች እና ግንዛቤዎች",
+    "settingsDesc": "የስርዓቱ ቅንብሮች",
+    "darkMode": "ጨለማ ሁነታ",
+    "notifications": "ማሳወቂያዎች"
   },
-  "badge": {
-    "secure": "ዩጎማ ካምፓስ ፖርታል",
-    "assessment": "የመምህራን ግምገማ ሥርዓት"
-  },
-  "language": {
-    "select": "ቋንቋ ይምረጡ",
-    "english": "እንግሊዝኛ",
-    "amharic": "አማርኛ",
-    "oromo": "ኦሮምኛ",
-    "tigrigna": "ትግርኛ",
-    "campus": "የካምፓስ ቋንቋ"
+  "activeTemplates": "አካል ያላቸው ቴምፕሌቶች",
+  "totalResponses": "ጠቅላላ ምላሾች",
+  "lightMode": "ብርሃን ሁነታ"
   },
   "auth": {
     "signin": {
@@ -168,4 +163,50 @@
     "student": "ተማሪ",
     "teacher": "መምህር"
   }
-}
+  ,
+  "sidebar": {
+      },
+      "form": {
+        "templateName": "የቴምፕሌት ስም",
+        "academicYear": "የአካዳሚክ ዓመት",
+        "semester": "ሴሚስተር",
+        "introduction": "መግቢያ",
+        "purpose": "ዓላማ / ለምን",
+        "details": "ዝርዝሮች",
+        "questions": "ጥያቄዎች",
+        "preview": "ቅድመ እይታ",
+        "addQuestion": "አዲስ ጥያቄ ያክሉ",
+        "questionType": "የጥያቄ አይነት",
+        "required": "አስፈላጊ",
+        "weight": "ክብደት (1-5)",
+        "add": "አክል",
+        "option": "አማራጭ",
+        "answerOptions": "የመልስ አማራጮች",
+        "description": "መግለጫ (አማራጭ)",
+        "questionText": "የጥያቄ ጽሑፍ",
+        "multipleChoice": "በብዛት ምርጫ",
+        "paragraph": "አንቀጽ",
+        "yes": "አዎን",
+        "no": "አይደለም",
+        "low": "ዝቅተኛ",
+        "medium": "መካከለኛ",
+        "high": "ከፍተኛ",
+        "remove": "አስወግድ",
+        "save": "አስቀምጥ",
+        "edit": "አርትዕ",
+        "cancel": "ሰርዝ",
+        "next": "ቀጣይ",
+        "back": "ተመለስ",
+        "submit": "አስገባ"
+      },
+    "colleges": "ኮሌጅዎች",
+    "collegesDesc": "የተቋሙ አስተዳደር",
+    "reports": "ሪፖርቶች",
+    "reportsDesc": "ትንታኔዎች እና ግንዛቤዎች",
+    "settingsDesc": "የስርዓቱ ቅንብሮች",
+    "activeTemplates": "አካል ያላቸው ቴምፕሌቶች",
+    "totalResponses": "ጠቅላላ ምላሾች",
+    "lightMode": "ብርሃን ሁነታ",
+    "darkMode": "ጨለማ ሁነታ",
+    "notifications": "ማሳወቂያዎች"
+  }

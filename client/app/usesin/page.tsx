@@ -187,17 +187,17 @@ export default function SignInPage() {
         credentials: "include",
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
         toast({
-          title: "Welcome back!",
-          description: "Let's try that again with your university email.",
+          title: "Authentication Failed",
+          description: data.error || "Invalid credentials. Please check your email and password.",
           variant: "destructive",
         });
         return;
       }
 
-      const data = await response.json();
-      
       toast({
         title: "Welcome to UoG! 🎓",
         description: `Great to see you, ${data.user?.name || "Educator"}!`,
@@ -287,43 +287,36 @@ export default function SignInPage() {
         <div className="grid lg:grid-cols-2 gap-12 max-w-7xl w-full items-center">
           <HeroSection />
 
-          {/* Premium Sign In Card - Campus Style */}
-          <div className="relative">
-            {/* Decorative Elements - Warm Gradient */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-rose-500 rounded-3xl blur opacity-30 animate-pulse" />
-            
-            <Card className="relative rounded-2xl border-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-2xl">
-              <CardContent className="p-8">
-                <div className="flex justify-end mb-4">
-                  <Badge 
-                    variant="outline" 
-                    className="rounded-full px-4 py-1.5 text-xs border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-50 to-rose-50 dark:from-amber-950/50 dark:to-rose-950/50"
-                  >
-                    <Shield className="h-3 w-3 mr-1.5 text-amber-600 dark:text-amber-400" />
-                    <span className="text-amber-700 dark:text-amber-300 font-medium">
-                      UoG Campus Portal
-                    </span>
-                  </Badge>
-                </div>
+          {/* Full Page Sign In - No Card */}
+          <div className="flex flex-col justify-center w-full h-full p-8 bg-white/95 dark:bg-slate-950/95 rounded-2xl shadow-2xl">
+            <div className="flex justify-end mb-4">
+              <Badge 
+                variant="outline" 
+                className="rounded-full px-4 py-1.5 text-xs border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-50 to-rose-50 dark:from-amber-950/50 dark:to-rose-950/50"
+              >
+                <Shield className="h-3 w-3 mr-1.5 text-amber-600 dark:text-amber-400" />
+                <span className="text-amber-700 dark:text-amber-300 font-medium">
+                  UoG Campus Portal
+                </span>
+              </Badge>
+            </div>
 
-                <SignIn
-                  onSignIn={handleSignIn}
-                  onResetPassword={handleResetPassword}
-                  isLoading={isLoading}
-                />
+            <SignIn
+              onSignIn={handleSignIn}
+              onResetPassword={handleResetPassword}
+              isLoading={isLoading}
+            />
 
-                <div className="mt-8 pt-6 border-t border-amber-100 dark:border-amber-900/50">
-                  <p className="text-xs text-center text-slate-500 dark:text-slate-500 flex items-center justify-center gap-1">
-                    <Heart className="h-3 w-3 text-rose-500 fill-rose-500" />
-                    © {new Date().getFullYear()} University of Gondar - Teacher Assessment System
-                    <Heart className="h-3 w-3 text-rose-500 fill-rose-500" />
-                  </p>
-                  <p className="text-[10px] text-center text-slate-400 dark:text-slate-600 mt-2">
-                    Dedicated to excellence in teaching and learning since 1954
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="mt-8 pt-6 border-t border-amber-100 dark:border-amber-900/50">
+              <p className="text-xs text-center text-slate-500 dark:text-slate-500 flex items-center justify-center gap-1">
+                <Heart className="h-3 w-3 text-rose-500 fill-rose-500" />
+                © {new Date().getFullYear()} University of Gondar - Teacher Assessment System
+                <Heart className="h-3 w-3 text-rose-500 fill-rose-500" />
+              </p>
+              <p className="text-[10px] text-center text-slate-400 dark:text-slate-600 mt-2">
+                Dedicated to excellence in teaching and learning since 1954
+              </p>
+            </div>
           </div>
         </div>
       </main>

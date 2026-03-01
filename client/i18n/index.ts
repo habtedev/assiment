@@ -5,15 +5,12 @@ import Backend from 'i18next-http-backend';
 
 import am from './am.json';
 import en from './en.json';
-import om from './om.json';
-import ti from './ti.json';
+
 
 // Language configuration
 export const languages = [
   { code: 'en', name: 'English', flag: '🇬🇧', dir: 'ltr' },
   { code: 'am', name: 'አማርኛ', flag: '🇪🇹', dir: 'ltr' },
-  { code: 'om', name: 'Oromiffa', flag: '🇪🇹', dir: 'ltr' },
-  { code: 'ti', name: 'ትግርኛ', flag: '🇪🇹', dir: 'ltr' }
 ] as const;
 
 export type LanguageCode = typeof languages[number]['code'];
@@ -37,11 +34,9 @@ i18n
     resources: {
       am: { translation: am },
       en: { translation: en },
-      om: { translation: om },
-      ti: { translation: ti },
     },
     fallbackLng: 'en',
-    debug: process.env.NODE_ENV === 'development',
+    debug: false,
     
     // Language detection options
     detection: {

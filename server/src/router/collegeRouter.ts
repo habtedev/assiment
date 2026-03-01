@@ -1,8 +1,31 @@
 import { Router } from 'express';
-import { adminAddCollege, addDepartment, addStudent, addTeacher } from '../controller/collegeController';
+import { adminAddCollege, addDepartment, addStudent, addTeacher, editCollege, deleteCollege } from '../controller/collegeController';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
+import prisma from '../DB/prismaClient';
 
 const router = Router();
+
+// Get a single college by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const college = await prisma.college.findUnique({ where: { id: Number(id) } });
+    if (!college) {
+      return res.status(404).json({ error: 'College not found' });
+    }
+    res.json(college);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch college' });
+  }
+});
+router.get('/', async (req, res) => {
+  try {
+    const colleges = await prisma.college.findMany();
+    res.json(colleges);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch colleges' });
+  }
+});
 
 // Department head adds student and teacher
 router.post('/add-student', authenticateJWT, requireRole('HEAD'), addStudent);

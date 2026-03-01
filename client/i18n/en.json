@@ -168,4 +168,54 @@
     "student": "Student",
     "teacher": "Teacher"
   }
-}
+  ,
+  "sidebar": {
+      },
+      "form": {
+        "templateName": "Template Name",
+        "academicYear": "Academic Year",
+        "semester": "Semester",
+        "introduction": "Introduction",
+        "purpose": "Purpose / Why",
+        "details": "Details",
+        "questions": "Questions",
+        "preview": "Preview",
+        "addQuestion": "Add New Question",
+        "questionType": "Question Type",
+        "required": "Required",
+        "weight": "Weight (1-5)",
+        "add": "Add",
+        "option": "Option",
+        "answerOptions": "Answer Options",
+        "description": "Description (optional)",
+        "questionText": "Question Text",
+        "multipleChoice": "Multiple Choice",
+        "paragraph": "Paragraph",
+        "yes": "Yes",
+        "no": "No",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "remove": "Remove",
+        "save": "Save",
+        "edit": "Edit",
+        "cancel": "Cancel",
+        "next": "Next",
+        "back": "Back",
+        "submit": "Submit"
+      },
+    "sidebar": {
+      "colleges": "Colleges",
+      "collegesDesc": "Institution management",
+      "reports": "Reports",
+      "reportsDesc": "Analytics & insights",
+      "settingsDesc": "System configuration",
+      "darkMode": "Dark Mode",
+      "notifications": "Notifications"
+    },
+    "activeTemplates": "Active Templates",
+    "totalResponses": "Total Responses",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "notifications": "Notifications"
+  }

@@ -7,12 +7,23 @@ import jwt from 'jsonwebtoken';
 // Register a new college (only by president)
 export const registerCollege = async (req: any, res: Response) => {
   try {
-    const { email, name, password, collegeName } = req.body;
+    const { email, name, password, collegeName, code, descriptionEn, descriptionAm, phone, addressEn, addressAm, academicYear, status } = req.body;
     // Find or create the COLLEGE_ADMIN role
     let role = await prisma.role.findUnique({ where: { name: 'COLLEGE_ADMIN' } });
     if (!role) role = await prisma.role.create({ data: { name: 'COLLEGE_ADMIN' } });
     // Create the college
-    const college = await prisma.college.create({ data: { name: collegeName } });
+    const college = await prisma.college.create({
+      data: {
+        name: { en: collegeName, am: collegeName },
+        code,
+        description: { en: descriptionEn, am: descriptionAm },
+        email,
+        phone,
+        address: { en: addressEn, am: addressAm },
+        academicYear,
+        status,
+      }
+    });
     // Create the college user
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
