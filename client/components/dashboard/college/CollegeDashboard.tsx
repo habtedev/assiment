@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { BarChart3, Users, Building2, PlusCircle } from "lucide-react";
-import Header from "@/components/shared/header/Header";
+import { CollegeHeader } from "./layouts/CollegeHeader";
+
 
 const analytics = [
   { label: "Total Departments", value: 5, icon: Building2 },
@@ -60,7 +61,7 @@ export default function CollegeDashboard() {
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <Header />
+    <CollegeHeader />
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         {/* Page Title */}
         <div className="flex items-center justify-between">

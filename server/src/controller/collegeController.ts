@@ -154,7 +154,7 @@ export const adminAddCollege = async (req: AuthRequest, res: Response) => {
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
     const user = await prisma.user.create({
       data: {
-        email: adminEmail,
+        email: email, // Use the email from request body
         name: adminName,
         password: hashedPassword,
         roleId: collegeRole.id,

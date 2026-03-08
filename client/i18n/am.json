@@ -163,6 +163,32 @@
     "student": "ተማሪ",
     "teacher": "መምህር"
   }
+  {
+     
+    "search": "ኮርሶችን እና መምህራንን ይፈልጉ...",
+    "mobileSearch": "ፈልግ...",
+    "notifications": "ማሳወቂያዎች",
+    "new": "አዲስ",
+    "viewAll": "ሁሉንም ይመልከቱ",
+    "profile": "መገለጫ",
+    "settings": "ማስተካከያ",
+    "logout": "ውጣ",
+    "quickStats": "ፈጣን መረጃ",
+    "students": "ተማሪዎች",
+    "teachers": "መምህራን",
+    "programs": "ፕሮግራሞች",
+    "dashboard": "ዳሽቦርድ",
+    "courses": "ኮርሶች",
+    "reports": "ሪፖርቶች",
+    "mainOverview": "ዋና ገጽ",
+    "academicPrograms": "የትምህርት ፕሮግራሞች",
+    "courseList": "ኮርሶች ዝርዝር",
+    "facultyMembers": "መምህራን",
+    "studentList": "ተማሪዎች ዝርዝር",
+    "analytics": "ሪፖርቶች",
+    "departmentSettings": "የመምሪያ ማስተካከያ",
+    "selectLanguage": "ቋንቋ ምረጥ",
+  }
   ,
   "sidebar": {
       },
@@ -209,4 +235,5 @@
     "lightMode": "ብርሃን ሁነታ",
     "darkMode": "ጨለማ ሁነታ",
     "notifications": "ማሳወቂያዎች"
+
   }

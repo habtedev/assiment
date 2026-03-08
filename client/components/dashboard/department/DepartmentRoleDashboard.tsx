@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import Header from "@/components/shared/header/Header";
+import { DepartmentHeader } from "@/components/dashboard/department/layout/DepartmentHeader";
 
 export default function DepartmentRoleDashboard() {
   // Student form state
@@ -89,7 +89,7 @@ export default function DepartmentRoleDashboard() {
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <Header />
+      <DepartmentHeader />
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-10">
         <Card className="rounded-2xl shadow-sm">
           <CardHeader>
