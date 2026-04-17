@@ -1,4 +1,3 @@
-// features/template-builder/components/QuestionsStep.tsx
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,12 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { PlusCircle, HelpCircle, Trash2 } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
-import { QuestionCard } from './QuestionCard';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { PlusCircle, Trash2, Type, List, Edit2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { TemplateFormState, TemplateFormAction, Language, QuestionType } from '../template.types';
+import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 interface QuestionsStepProps {
   state: TemplateFormState;
@@ -25,265 +25,286 @@ interface QuestionsStepProps {
   canAddQuestion: boolean;
 }
 
-const LANGUAGES = [
-  { code: 'en' as Language, label: 'English', flag: '🇬🇧' },
-  { code: 'am' as Language, label: 'አማርኛ', flag: '🇪🇹' },
-];
-
 const QUESTION_TYPES = [
-  { value: 'multiple' as QuestionType, label: 'Multiple Choice', icon: '🔘' },
-  { value: 'paragraph' as QuestionType, label: 'Paragraph', icon: '📝' },
+  { value: 'multiple' as QuestionType, label: 'Multiple Choice', icon: <List className="h-4 w-4" /> },
+  { value: 'paragraph' as QuestionType, label: 'Paragraph / Long Text', icon: <Type className="h-4 w-4" /> },
 ];
-
-const WEIGHT_OPTIONS = [1, 2, 3, 4, 5];
 
 export function QuestionsStep({ state, dispatch, onAddQuestion, canAddQuestion }: QuestionsStepProps) {
+  const { currentQuestion, questions, currentLang } = state;
+
   return (
-    <div className="space-y-6">
-      {/* Add Question Form */}
-      <Card className="border-0 bg-gradient-to-br from-amber-50/50 to-rose-50/50 dark:from-amber-950/20 dark:to-rose-950/20">
-        <CardHeader>
-          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-            <PlusCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-            Add New Question
+    <div className="w-full space-y-4">
+      {/* BUILDER SECTION */}
+      <Card className="shadow-lg border-indigo-200/50 overflow-hidden">
+        <div className="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 border-b">
+          <CardTitle className="text-base flex items-center gap-2">
+            <PlusCircle className="h-4 w-4 text-indigo-600" />
+            Question Designer
           </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {/* Question Type */}
-            <div>
-              <Label className="text-xs sm:text-sm">Question Type</Label>
+          <CardDescription className="text-xs">Configure your question parameters</CardDescription>
+        </div>
+
+        <CardContent className="p-4 space-y-4">
+          {/* Configuration Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground cursor-pointer">Response Type</Label>
               <Select
-                value={state.currentQuestion.type}
-                onValueChange={(v: QuestionType) =>
-                  dispatch({ type: 'SET_QUESTION_TYPE', payload: v })
-                }
+                value={currentQuestion.type}
+                onValueChange={(v: QuestionType) => dispatch({ type: 'SET_QUESTION_TYPE', payload: v })}
               >
-                <SelectTrigger className="mt-1 h-9 sm:h-10 text-sm border-amber-200/50">
+                <SelectTrigger className="bg-white border-indigo-200 focus-visible:ring-indigo-500 h-9 text-sm cursor-pointer">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {QUESTION_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      <span className="mr-2">{type.icon}</span>
-                      {type.label}
+                  {QUESTION_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value} className="cursor-pointer">
+                      <div className="flex items-center gap-2">{t.icon} {t.label}</div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Required */}
-            <div>
-              <Label className="text-xs sm:text-sm">Required</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground cursor-pointer">Requirement</Label>
               <Select
-                value={state.currentQuestion.required ? 'yes' : 'no'}
-                onValueChange={(v) =>
-                  dispatch({ type: 'SET_QUESTION_REQUIRED', payload: v === 'yes' })
-                }
+                value={currentQuestion.required ? 'yes' : 'no'}
+                onValueChange={(v) => dispatch({ type: 'SET_QUESTION_REQUIRED', payload: v === 'yes' })}
               >
-                <SelectTrigger className="mt-1 h-9 sm:h-10 text-sm border-amber-200/50">
+                <SelectTrigger className="bg-white border-indigo-200 focus-visible:ring-indigo-500 h-9 text-sm cursor-pointer">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="yes">Yes</SelectItem>
-                  <SelectItem value="no">No</SelectItem>
+                  <SelectItem value="yes" className="cursor-pointer">Mandatory</SelectItem>
+                  <SelectItem value="no" className="cursor-pointer">Optional</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Weight */}
-            <div>
-              <Label className="text-xs sm:text-sm">Weight (1-5)</Label>
-              <Select
-                value={state.currentQuestion.weight.toString()}
-                onValueChange={(v) =>
-                  dispatch({ type: 'SET_QUESTION_WEIGHT', payload: parseInt(v) })
-                }
-              >
-                <SelectTrigger className="mt-1 h-9 sm:h-10 text-sm border-amber-200/50">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {WEIGHT_OPTIONS.map((w) => (
-                    <SelectItem key={w} value={w.toString()}>
-                      {w} - {w === 1 ? 'Low' : w === 5 ? 'High' : 'Medium'}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-1.5">
+              <Label className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground cursor-pointer">Points / Weight</Label>
+              <Input
+                type="number"
+                min="1"
+                max="10"
+                value={currentQuestion.weight}
+                onChange={(e) => dispatch({ type: 'SET_QUESTION_WEIGHT', payload: parseInt(e.target.value) || 1 })}
+                className="border-indigo-200 focus-visible:ring-indigo-500 h-9 text-sm cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Text Inputs */}
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="q-text" className="text-sm font-semibold cursor-pointer">Question Label</Label>
+              <Input
+                id="q-text"
+                value={currentQuestion.text[currentLang] || ''}
+                onChange={(e) => dispatch({ type: 'SET_QUESTION_TEXT', payload: { lang: currentLang, value: e.target.value } })}
+                placeholder="e.g., How would you rate our service?"
+                className="text-sm py-3 border-indigo-200 focus-visible:ring-indigo-500 cursor-pointer"
+              />
             </div>
 
-            {/* Add Button */}
-            <div className="flex items-end">
+            <div className="space-y-1.5">
+              <Label htmlFor="q-desc" className="text-sm font-semibold text-muted-foreground cursor-pointer">Instructions (Optional)</Label>
+              <Textarea
+                id="q-desc"
+                value={currentQuestion.description[currentLang] || ''}
+                onChange={(e) => dispatch({ type: 'SET_QUESTION_DESC', payload: { lang: currentLang, value: e.target.value } })}
+                placeholder="Provide additional context or help text..."
+                className="resize-none border-indigo-200 focus-visible:ring-indigo-500 text-sm min-h-[80px] cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Conditional Multi-Choice Options */}
+          {currentQuestion.type === 'multiple' && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-2.5 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed border-indigo-200"
+            >
+              <Label className="flex items-center gap-2 text-sm font-semibold cursor-pointer">
+                <List className="h-4 w-4" /> Choice Options
+              </Label>
+              <div className="grid gap-2">
+                {currentQuestion.choices.map((choice, idx) => (
+                  <div key={choice.id} className="flex gap-2 items-center group">
+                    <Badge variant="outline" className="h-8 w-8 shrink-0 justify-center border-indigo-200 text-indigo-600 text-xs">{idx + 1}</Badge>
+                    <Input
+                      value={choice.translations?.[currentLang] || choice.translations?.en || ''}
+                      onChange={(e) => dispatch({
+                        type: 'UPDATE_CHOICE',
+                        payload: { id: choice.id, lang: currentLang, value: e.target.value }
+                      })}
+                      placeholder={`Option ${idx + 1}`}
+                      className="bg-white border-indigo-200 focus-visible:ring-indigo-500 h-8 text-sm cursor-pointer"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={currentQuestion.choices.length <= 1}
+                      onClick={() => dispatch({ type: 'REMOVE_CHOICE', payload: choice.id })}
+                      className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
               <Button
-                onClick={onAddQuestion}
-                disabled={!canAddQuestion}
-                className="w-full h-9 sm:h-10 text-sm bg-gradient-to-r from-amber-500 to-rose-500 text-white hover:from-amber-600 hover:to-rose-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 h-8 text-sm cursor-pointer"
+                onClick={() => dispatch({ type: 'ADD_CHOICE' })}
               >
-                <PlusCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                Add
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Choice
               </Button>
-            </div>
+            </motion.div>
+          )}
+
+          <Button
+            onClick={onAddQuestion}
+            disabled={!canAddQuestion}
+            className="w-full py-4 text-sm font-bold bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all cursor-pointer"
+          >
+            Confirm & Add to List
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* TEMPLATE QUESTIONS LIST */}
+      <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-black overflow-hidden">
+        <CardHeader className="pb-3 pt-4 px-4">
+          <div>
+            <CardTitle className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
+              <List className="h-4 w-4 text-indigo-600" />
+              Template Questions ({questions.length})
+            </CardTitle>
+            <CardDescription className="text-xs">Questions added to this template</CardDescription>
           </div>
-
-          {/* Question Text */}
-          <div className="space-y-3">
-            <Label className="text-xs sm:text-sm font-medium">Question Text</Label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {LANGUAGES.map((lang) => (
-                <div key={lang.code} className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-base sm:text-lg">
-                    {lang.flag}
-                  </div>
-                  <Input
-                    value={state.currentQuestion.text[lang.code]}
-                    onChange={(e) =>
-                      dispatch({
-                        type: 'SET_QUESTION_TEXT',
-                        payload: { lang: lang.code, value: e.target.value },
-                      })
-                    }
-                    placeholder={`${lang.label}`}
-                    className="pl-10 sm:pl-12 text-sm border-amber-200/50 focus-visible:ring-amber-500"
-                  />
-                </div>
-              ))}
+        </CardHeader>
+        <CardContent className="pb-4 px-4">
+          {questions.length === 0 ? (
+            <div className="text-center py-8 text-sm text-gray-500">
+              No questions added yet. Create a new question using the designer above.
             </div>
-          </div>
-
-          {/* Question Description */}
-          <div className="space-y-3">
-            <Label className="text-xs sm:text-sm font-medium">Description (optional)</Label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {LANGUAGES.map((lang) => (
-                <div key={lang.code} className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-base sm:text-lg">
-                    {lang.flag}
-                  </div>
-                  <Input
-                    value={state.currentQuestion.description[lang.code]}
-                    onChange={(e) =>
-                      dispatch({
-                        type: 'SET_QUESTION_DESC',
-                        payload: { lang: lang.code, value: e.target.value },
-                      })
-                    }
-                    placeholder={`Description (${lang.label})`}
-                    className="pl-10 sm:pl-12 text-sm border-amber-200/50 focus-visible:ring-amber-500"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Multiple Choice Options */}
-          {state.currentQuestion.type === 'multiple' && (
-            <div className="space-y-4">
-              <Separator className="bg-amber-200/50" />
-              <Label className="text-sm sm:text-base font-semibold">Answer Options</Label>
-
-              {state.currentQuestion.choices.map((choice, index) => (
-                <div
-                  key={choice.id}
-                  className="rounded-lg border bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-3 sm:p-4 space-y-3"
+          ) : (
+            <div className="space-y-2">
+              {questions.map((q, idx) => (
+                <motion.div
+                  key={q.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-black hover:border-indigo-300 transition-all"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm">Option {index + 1}</span>
-                    {state.currentQuestion.choices.length > 1 && (
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="flex-shrink-0 h-6 w-6 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs flex items-center justify-center font-medium">
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-[10px] h-5 px-2">
+                            {q.type === 'multiple' ? 'Multiple Choice' : 'Paragraph'}
+                          </Badge>
+                          {q.required && (
+                            <Badge variant="outline" className="text-[10px] h-5 px-2 border-amber-200 text-amber-700">
+                              Required
+                            </Badge>
+                          )}
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {q.weight} pts
+                          </span>
+                        </div>
+                        <p className="text-xs font-medium text-gray-900 dark:text-white">
+                          {q.translations?.[currentLang]?.text || q.translations?.en?.text}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 rounded-full hover:bg-rose-100/50 text-rose-600"
-                        onClick={() => dispatch({ type: 'REMOVE_CHOICE', payload: choice.id })}
+                        onClick={() => {
+                          // Load question into editor for editing
+                          const questionText = q.translations?.[currentLang]?.text || q.translations?.en?.text || '';
+                          const questionDesc = q.translations?.[currentLang]?.description || q.translations?.en?.description || '';
+
+                          dispatch({
+                            type: 'SET_QUESTION_TEXT',
+                            payload: { lang: currentLang, value: questionText }
+                          });
+                          dispatch({
+                            type: 'SET_QUESTION_DESC',
+                            payload: { lang: currentLang, value: questionDesc }
+                          });
+                          dispatch({
+                            type: 'SET_QUESTION_TYPE',
+                            payload: q.type
+                          });
+                          dispatch({
+                            type: 'SET_QUESTION_REQUIRED',
+                            payload: q.required
+                          });
+                          dispatch({
+                            type: 'SET_QUESTION_WEIGHT',
+                            payload: q.weight
+                          });
+
+                          // Load choices if it's a multiple choice question
+                          if (q.type === 'multiple' && q.choices && q.choices.length > 0) {
+                            // Clear existing choices first
+                            const currentChoiceIds = currentQuestion.choices.map(c => c.id);
+                            currentChoiceIds.forEach(id => {
+                              dispatch({ type: 'REMOVE_CHOICE', payload: id });
+                            });
+
+                            // Add choices from the question with their text
+                            q.choices.forEach((choice: any) => {
+                              // Handle different choice text formats
+                              let choiceText = '';
+                              if (choice.translations) {
+                                choiceText = choice.translations[currentLang] || choice.translations.en || '';
+                              } else if (typeof choice === 'string') {
+                                choiceText = choice;
+                              }
+
+                              // Add choice with initial text
+                              dispatch({ type: 'ADD_CHOICE', payload: choiceText });
+                            });
+                          }
+
+                          // Mark for editing (remove after add)
+                          dispatch({ type: 'REMOVE_QUESTION', payload: q.id });
+                        }}
+                        className="h-7 w-7 text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 cursor-pointer"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => dispatch({ type: 'REMOVE_QUESTION', payload: q.id })}
+                        className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
-                    )}
+                    </div>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {LANGUAGES.map((lang) => (
-                      <div key={lang.code} className="relative">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-base sm:text-lg">
-                          {lang.flag}
-                        </div>
-                        <Input
-                          value={choice.translations[lang.code]}
-                          onChange={(e) =>
-                            dispatch({
-                              type: 'UPDATE_CHOICE',
-                              payload: { id: choice.id, lang: lang.code, value: e.target.value },
-                            })
-                          }
-                          placeholder={`${lang.label}`}
-                          className="pl-10 sm:pl-12 text-sm border-amber-200/50 focus-visible:ring-amber-500"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                </motion.div>
               ))}
-
-              <Button
-                variant="outline"
-                onClick={() => dispatch({ type: 'ADD_CHOICE' })}
-                className="w-full text-sm border-amber-200/50 hover:bg-amber-50/50 transition-all"
-              >
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Add Another Option
-              </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Questions List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-            <span className="h-5 w-5 text-amber-600">📋</span>
-            Questions ({state.questions.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {state.questions.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed border-amber-200/50 rounded-xl bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm">
-              <HelpCircle className="h-12 w-12 mx-auto text-amber-300 mb-3" />
-              <p className="text-sm text-muted-foreground">No questions added yet.</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Add questions using the form above
-              </p>
-            </div>
-          ) : (
-            <AnimatePresence mode="popLayout">
-              <div className="space-y-3">
-                {state.questions.map((question, index) => (
-                  <QuestionCard
-                    key={question.id}
-                    question={question}
-                    index={index}
-                    totalQuestions={state.questions.length}
-                    currentLang={state.currentLang}
-                    onMoveUp={() =>
-                      dispatch({ type: 'MOVE_QUESTION', payload: { index, direction: 'up' } })
-                    }
-                    onMoveDown={() =>
-                      dispatch({ type: 'MOVE_QUESTION', payload: { index, direction: 'down' } })
-                    }
-                    onDuplicate={() =>
-                      dispatch({ type: 'DUPLICATE_QUESTION', payload: question })
-                    }
-                    onDelete={() =>
-                      dispatch({ type: 'REMOVE_QUESTION', payload: question.id })
-                    }
-                  />
-                ))}
-              </div>
-            </AnimatePresence>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

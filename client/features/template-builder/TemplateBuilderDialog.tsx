@@ -1,14 +1,13 @@
-// features/template-builder/TemplateBuilderDialog.tsx
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTemplateBuilder } from './useTemplateBuilder';
 import { StepIndicator } from './components/StepIndicator';
-import { LanguageSwitcher } from './components/LanguageSwitcher';
 import { DetailsStep } from './components/DetailsStep';
 import { QuestionsStep } from './components/QuestionsStep';
 import { PreviewStep } from './components/PreviewStep';
+
 import {
   AlertDialog,
   AlertDialogContent,
@@ -21,10 +20,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Sparkles, ArrowLeft, ArrowRight, Save, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { X, ArrowLeft, ArrowRight, Save, Loader2, Sparkles } from 'lucide-react';
 import { getJwtToken } from '@/lib/auth';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/components/ui/use-toast';
 
 interface TemplateBuilderDialogProps {
   open: boolean;
@@ -42,30 +41,30 @@ export function TemplateBuilderDialog({
   isEdit = false,
 }: TemplateBuilderDialogProps) {
   const { state, dispatch, actions } = useTemplateBuilder(initial, isEdit);
-  const [showCancelDialog, setShowCancelDialog] = React.useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  // Load initial data when dialog opens - with better debugging and transformation
+  // Load initial data
   useEffect(() => {
     if (open && initial) {
-      console.log("📥 Loading initial template data:", initial);
       const formattedInitial = {
-        name: initial.name || { en: initial.title || '', am: initial.titleAm || '' },
-        intro: initial.intro || { en: initial.description || '', am: initial.descriptionAm || '' },
-        why: initial.why || { en: initial.purpose || '', am: initial.purposeAm || '' },
+        name: initial.name || initial.title || { en: '' },
+        intro: initial.intro || initial.description || { en: '' },
+        why: initial.why || initial.purpose || { en: '' },
         academicYear: initial.academicYear || '',
         semester: initial.semester || '',
         calendarType: initial.calendarType || 'ethiopian',
-        questions: initial.questions || [],
+        questions: initial.questions || initial.content?.questions || [],
         id: initial.id,
       };
-      console.log("📤 Formatted initial data:", formattedInitial);
       dispatch({ type: 'LOAD_INITIAL', payload: formattedInitial });
     }
   }, [open, initial, dispatch]);
 
   const handleCancel = () => {
-    const hasChanges = Object.values(state.name).some(v => v) || state.questions.length > 0;
-    if (hasChanges) {
+    const hasChanges = state.name?.trim() || state.questions.length > 0;
+    if (hasChanges && !isEdit) {
       setShowCancelDialog(true);
     } else {
       onOpenChange(false);
@@ -73,217 +72,203 @@ export function TemplateBuilderDialog({
   };
 
   const handleSave = async () => {
+    setIsSubmitting(true);
     try {
-      const validated = await actions.saveTemplate();
-      if (validated) {
-        // Prepare payload for backend (always send multilingual fields as objects)
+      const validatedData = await actions.saveTemplate();
+      if (!validatedData) return;
+
+      // If in edit mode, just return validated data to parent component
+      if (isEdit) {
         const payload = {
-          title: validated.name || { en: '', am: '' },
-          description: validated.intro || { en: '', am: '' },
-          intro: validated.intro || { en: '', am: '' },
-          why: validated.why || { en: '', am: '' },
-          content: validated,
+          name: validatedData.name,
+          description: validatedData.intro,
+          intro: validatedData.intro,
+          why: validatedData.why,
+          questions: validatedData.questions,
+          calendarType: validatedData.calendarType,
+          academicYear: validatedData.academicYear,
+          semester: validatedData.semester,
           isDraft: false,
         };
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8500";
-        const token = getJwtToken();
-        const res = await fetch(`${apiBaseUrl}/api/templates`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(payload),
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to create template");
-        onSave(await res.json());
-        setTimeout(() => onOpenChange(false), 300);
-      } else {
-        // If save failed, stay on dialog and do not navigate
-        console.error('Failed to save template: validation or API error');
+        await onSave(payload);
+        onOpenChange(false);
+        return;
       }
+
+      // For new templates, make API call
+      const payload = {
+        name: validatedData.name,
+        description: validatedData.intro,
+        intro: validatedData.intro,
+        why: validatedData.why,
+        questions: validatedData.questions,
+        calendarType: validatedData.calendarType,
+        academicYear: validatedData.academicYear,
+        semester: validatedData.semester,
+        isDraft: false,
+      };
+
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8500";
+      const token = getJwtToken();
+
+      const res = await fetch(`${apiBaseUrl}/api/templates`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to save template");
+
+      const savedTemplate = await res.json();
+      onSave(savedTemplate);
+      onOpenChange(false);
     } catch (error) {
-      // Log error to console and stay on dialog
-      console.error('Failed to save template:', error);
+      console.error('Save Error:', error);
+      toast({
+        title: "❌ Error",
+        description: isEdit ? "Failed to update template. Please try again." : "Failed to create template. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const totalQuestions = state.questions.length;
-
   return (
     <>
-      <div className="w-full max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="p-4 sm:p-6 pb-3 border-b bg-linear-to-r from-amber-50/50 to-rose-50/50 dark:from-amber-950/30 dark:to-rose-950/30 rounded-t-2xl">
-          <div className="flex items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative">
-                <div className="absolute inset-0 bg-linear-to-r from-amber-500 to-rose-600 rounded-xl blur-lg opacity-40 animate-pulse" />
-                <div className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-linear-to-br from-amber-500 to-rose-500 flex items-center justify-center text-white shrink-0 shadow-md">
-                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-                </div>
+      <div className="flex flex-col h-full w-full">
+
+        {/* Compact Modern Header */}
+        <header className="px-6 py-3 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-md">
+                <Sparkles className="h-4 w-4" />
               </div>
-              <div className="min-w-0">
-                <h2 className="text-base sm:text-xl font-bold truncate bg-linear-to-r from-amber-700 to-rose-700 dark:from-amber-400 dark:to-rose-400 bg-clip-text text-transparent">
-                  {initial ? 'Edit Template' : 'Create New Template'}
+              <div>
+                <h2 className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">
+                  {isEdit ? 'Edit Template' : 'Create New Template'}
                 </h2>
-                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                  Build your assessment template with multi-language support
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {isEdit ? 'Modify your existing template' : 'Design a new evaluation form'}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Badge variant="outline" className="rounded-full px-2 sm:px-3 py-1 text-xs border-amber-200 dark:border-amber-800 bg-white/50 dark:bg-slate-900/50">
-                <Sparkles className="h-3 w-3 mr-1 text-amber-500" />
-                <span className="hidden xs:inline">{totalQuestions} Question{totalQuestions !== 1 ? 's' : ''}</span>
-                <span className="xs:hidden">{totalQuestions}</span>
-              </Badge>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleCancel}
-                className="rounded-full h-8 w-8 sm:h-9 sm:w-9 hover:bg-rose-100/50 dark:hover:bg-rose-900/30"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCancel}
+              className="rounded-full hover:bg-red-100 dark:hover:bg-red-950/50 text-gray-400 hover:text-red-600 transition-colors h-8 w-8 cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
+        </header>
+
+        {/* Progress Indicator */}
+        <div className="px-6 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50/70 dark:bg-gray-900/70">
+          <StepIndicator
+            currentStep={state.currentStep}
+            onStepChange={(step) => dispatch({ type: 'SET_CURRENT_STEP', payload: step })}
+            completedSteps={state.completedSteps}
+          />
         </div>
 
-        {/* Language Switcher */}
-        <LanguageSwitcher
-          currentLang={state.currentLang}
-          onLanguageChange={(lang) => dispatch({ type: 'SET_LANGUAGE', payload: lang })}
-        />
-
-        {/* Step Indicator */}
-        <StepIndicator
-          currentStep={state.currentStep}
-          onStepChange={(step) => dispatch({ type: 'SET_CURRENT_STEP', payload: step })}
-          completedSteps={state.completedSteps}
-        />
-
-        {/* Content Area */}
-        <ScrollArea className="h-[calc(100vh-400px)] px-4 sm:px-6 py-4">
-          <AnimatePresence mode="wait">
-            <>
-              {state.currentStep === 'details' && (
-                <motion.div
-                  key="details"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <DetailsStep state={state} dispatch={dispatch} />
-                </motion.div>
-              )}
-
-              {state.currentStep === 'questions' && (
-                <motion.div
-                  key="questions"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                >
+        {/* Main Content - More Compact */}
+        <ScrollArea className="flex-1 px-6 py-4">
+          <div className="w-full">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={state.currentStep}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
+                {state.currentStep === 'details' && <DetailsStep state={state} dispatch={dispatch} />}
+                {state.currentStep === 'questions' && (
                   <QuestionsStep
                     state={state}
                     dispatch={dispatch}
                     onAddQuestion={actions.addQuestion}
                     canAddQuestion={actions.canAddQuestion}
                   />
-                </motion.div>
-              )}
-
-              {state.currentStep === 'preview' && (
-                <motion.div
-                  key="preview"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <PreviewStep state={state} />
-                </motion.div>
-              )}
-            </>
-          </AnimatePresence>
+                )}
+                {state.currentStep === 'preview' && <PreviewStep state={state} />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </ScrollArea>
 
-        {/* Footer Navigation */}
-        <div className="p-4 sm:p-6 pt-3 border-t bg-linear-to-r from-amber-50/30 to-rose-50/30 dark:from-amber-950/20 dark:to-rose-950/20 rounded-b-2xl">
-          <div className="flex flex-col-reverse sm:flex-row w-full gap-2 sm:gap-3">
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              className="w-full sm:flex-1 rounded-full text-sm h-9 sm:h-10 border-amber-200/50 hover:bg-amber-50/50 transition-all"
-            >
-              <X className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-              Cancel
-            </Button>
-            
-            <div className="flex gap-2 w-full sm:w-auto">
-              {state.currentStep !== 'details' && (
-                <Button
-                  variant="outline"
-                  onClick={actions.goToPreviousStep}
-                  className="flex-1 sm:flex-initial rounded-full text-sm h-9 sm:h-10 px-4 border-amber-200/50 hover:bg-amber-50/50 transition-all"
-                >
-                  <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                  <span className="hidden xs:inline">Back</span>
-                </Button>
-              )}
-              
-              {state.currentStep !== 'preview' ? (
-                <Button
-                  onClick={actions.goToNextStep}
-                  disabled={state.currentStep === 'details' && !actions.isStepValid('details')}
-                  className="flex-1 sm:flex-initial rounded-full text-sm h-9 sm:h-10 px-6 bg-linear-to-r from-amber-500 to-rose-500 text-white hover:from-amber-600 hover:to-rose-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
-                >
-                  <span className="hidden xs:inline">Next</span>
-                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleSave}
-                  disabled={state.isSaving || !actions.isStepValid('details')}
-                  className="flex-1 sm:flex-initial rounded-full text-sm h-9 sm:h-10 px-6 bg-linear-to-r from-amber-500 to-rose-500 text-white hover:from-amber-600 hover:to-rose-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50 min-w-25"
-                >
-                  {state.isSaving ? (
-                    <>
-                      <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2 animate-spin" />
-                      <span className="hidden xs:inline">Saving...</span>
-                      <span className="xs:hidden">...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                      <span className="hidden xs:inline">{initial ? 'Update' : 'Create'}</span>
-                      <span className="xs:hidden">Save</span>
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
+        {/* Clean Footer */}
+        <footer className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+          <div className="flex items-center justify-center w-full gap-4">
+            {state.currentStep !== 'details' && (
+              <Button
+                variant="outline"
+                onClick={actions.goToPreviousStep}
+                className="gap-2 px-6 py-2.5 text-sm font-medium cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+            )}
+
+            {state.currentStep !== 'preview' ? (
+              <Button
+                onClick={actions.goToNextStep}
+                disabled={!actions.validateStep(state.currentStep)}
+                className="gap-3 px-8 py-2.5 text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl transition-all rounded-lg cursor-pointer"
+              >
+                Continue
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSave}
+                disabled={isSubmitting || !actions.validateStep('details')}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-10 py-2.5 text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-xl transition-all rounded-lg cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    {isEdit ? 'Update Template' : 'Publish Template'}
+                  </>
+                )}
+              </Button>
+            )}
           </div>
-        </div>
+        </footer>
       </div>
 
-      {/* Cancel Confirmation Dialog */}
+      {/* Discard Confirmation Dialog */}
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-3xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard changes?</AlertDialogTitle>
-            <AlertDialogDescription>
-              You have unsaved changes. Are you sure you want to discard them?
+            <AlertDialogTitle className="text-xl font-semibold text-rose-600">
+              Discard this template?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              All progress will be lost. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Continue Editing</AlertDialogCancel>
-            <AlertDialogAction onClick={() => onOpenChange(false)}>
-              Discard
+            <AlertDialogCancel className="rounded-2xl">Keep Editing</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onOpenChange(false)}
+              className="bg-rose-600 hover:bg-rose-700 rounded-2xl"
+            >
+              Yes, Discard
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

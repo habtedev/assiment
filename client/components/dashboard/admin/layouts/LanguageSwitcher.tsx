@@ -1,30 +1,29 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { languages } from "@/i18n";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+"use client";
 
-export const LanguageSwitcher: React.FC = () => {
-  const { i18n, t } = useTranslation();
-  const currentLang = i18n.language.split("-")[0];
+import * as React from "react";
+import { Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export function LanguageSwitcher() {
+  const [mounted, setMounted] = React.useState(false);
+
+  // Prevent hydration mismatch for SSR
+  React.useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="sm" className="w-9 px-0 sm:w-auto sm:px-3" disabled>
+        <Globe className="h-4 w-4" />
+      </Button>
+    );
+  }
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="hidden sm:inline text-xs text-muted-foreground font-medium">
-        {t("language.select")}
+    <Button variant="ghost" size="sm" className="gap-2 h-9 px-3 outline-none">
+      <Globe className="h-4 w-4 text-muted-foreground" />
+      <span className="hidden sm:inline-block text-sm font-medium">
+        English
       </span>
-      <Select value={currentLang} onValueChange={val => i18n.changeLanguage(val)}>
-        <SelectTrigger className="w-32 h-8 rounded-full border-amber-200 bg-white/80 dark:bg-slate-900/80 text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {languages.filter(l => l.code === "en" || l.code === "am").map(lang => (
-            <SelectItem key={lang.code} value={lang.code} className="flex items-center gap-2">
-              <span className="mr-1 text-base">{lang.flag}</span>
-              <span>{lang.name}</span>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    </Button>
   );
-};
+}

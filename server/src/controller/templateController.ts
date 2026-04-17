@@ -4,24 +4,49 @@ import prisma from "../DB/prismaClient";
 export const createTemplate = async (req: any, res: Response) => {
   try {
     console.log('Create Template Request Body:', req.body);
-    let { title, description, intro, why, content, isDraft } = req.body;
+    const {
+      name, // Frontend sends 'name', backend expects 'title'
+      description,
+      intro,
+      why,
+      questions, // Frontend sends 'questions', backend expects 'content'
+      calendarType,
+      academicYear,
+      semester,
+      targetAudience,
+      isDraft
+    } = req.body;
     const createdById = req.user?.userId;
     if (!createdById) return res.status(401).json({ error: "Unauthorized" });
 
     // Ensure all fields are objects with language keys
     const toMultilingual = (val: any) => {
-      if (!val) return { en: "" };
+      if (!val) return { en: "", am: "" };
       if (typeof val === "object") return val;
-      return { en: val };
+      return { en: val, am: "" };
     };
-    title = toMultilingual(title);
-    description = toMultilingual(description);
-    intro = toMultilingual(intro);
-    why = toMultilingual(why);
+
+    const title = toMultilingual(name); // Map 'name' to 'title'
+    const introData = toMultilingual(intro);
+    const whyData = toMultilingual(why);
+    const descriptionData = toMultilingual(description);
+    const content = { questions }; // Wrap questions in content object
 
     try {
       const template = await prisma.template.create({
-        data: { title, description, intro, why, content, isDraft, createdById },
+        data: {
+          title,
+          description: descriptionData,
+          intro: introData,
+          why: whyData,
+          content,
+          calendarType: calendarType || "ethiopian",
+          academicYear: academicYear || "",
+          semester: semester || "",
+          targetAudience: targetAudience || "student",
+          isDraft: isDraft || false,
+          createdById,
+        },
       });
       res.status(201).json(template);
     } catch (prismaError: any) {
@@ -57,22 +82,46 @@ export const getTemplateById = async (req: Request, res: Response) => {
 export const updateTemplate = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    let { title, description, intro, why, content, isDraft } = req.body;
+    const {
+      name, // Frontend sends 'name', backend expects 'title'
+      description,
+      intro,
+      why,
+      questions, // Frontend sends 'questions', backend expects 'content'
+      calendarType,
+      academicYear,
+      semester,
+      targetAudience,
+      isDraft
+    } = req.body;
 
     // Ensure all fields are objects with language keys
     const toMultilingual = (val: any) => {
-      if (!val) return { en: "" };
+      if (!val) return { en: "", am: "" };
       if (typeof val === "object") return val;
-      return { en: val };
+      return { en: val, am: "" };
     };
-    title = toMultilingual(title);
-    description = toMultilingual(description);
-    intro = toMultilingual(intro);
-    why = toMultilingual(why);
+
+    const title = toMultilingual(name); // Map 'name' to 'title'
+    const introData = toMultilingual(intro);
+    const whyData = toMultilingual(why);
+    const descriptionData = toMultilingual(description);
+    const content = { questions }; // Wrap questions in content object
 
     const template = await prisma.template.update({
       where: { id: Number(id) },
-      data: { title, description, intro, why, content, isDraft },
+      data: {
+        title,
+        description: descriptionData,
+        intro: introData,
+        why: whyData,
+        content,
+        calendarType: calendarType || "ethiopian",
+        academicYear: academicYear || "",
+        semester: semester || "",
+        targetAudience: targetAudience || "student",
+        isDraft: isDraft || false,
+      },
     });
     res.json(template);
   } catch (error) {

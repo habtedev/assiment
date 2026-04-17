@@ -1,19 +1,9 @@
 "use client";
 
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -40,21 +30,21 @@ import { cn } from '@/lib/utils';
 const signInSchema = z.object({
   email: z
     .string()
-    .min(1, 'validation.email.required')
-    .email('validation.email.invalid')
-    .regex(/^[a-zA-Z0-9._%+-]+@uog\.edu\.et$/, 'validation.email.university'),
+    .min(1, { message: 'validation.email.required' })
+    .email({ message: 'validation.email.invalid' })
+    .regex(/^[a-zA-Z0-9._%+-]+@uog\.edu\.et$/, { message: 'validation.email.university' }),
   password: z
     .string()
-    .min(1, 'validation.password.required')
-    .min(6, 'validation.password.minLength'),
+    .min(1, { message: 'validation.password.required' })
+    .min(6, { message: 'validation.password.minLength' }),
 });
 
 const resetPasswordSchema = z.object({
   email: z
     .string()
-    .min(1, 'validation.email.required')
-    .email('validation.email.invalid')
-    .regex(/^[a-zA-Z0-9._%+-]+@uog\.edu\.et$/, 'validation.email.university'),
+    .min(1, { message: 'validation.email.required' })
+    .email({ message: 'validation.email.invalid' })
+    .regex(/^[a-zA-Z0-9._%+-]+@uog\.edu\.et$/, { message: 'validation.email.university' }),
 });
 
 type SignInFormValues = z.infer<typeof signInSchema>;
@@ -75,17 +65,44 @@ export default function SignIn({
   signInError = null,
   resetPasswordSuccess = false,
 }: SignInProps) {
-  const { t } = useTranslation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = React.useState<'signin' | 'reset'>('signin');
+  const [activeTab, setActiveTab] = useState<'signin' | 'reset'>('signin');
+
+  // Custom resolver with translated error messages
+  const customResolver = (values: any) => {
+    const errors: any = {};
+    
+    // Email validation
+    if (!values.email) {
+      errors.email = { message: 'Email is required' };
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+      errors.email = { message: 'Invalid email format' };
+    } else if (!/^[a-zA-Z0-9._%+-]+@uog\.edu\.et$/.test(values.email)) {
+      errors.email = { message: 'Must use a university email (@uog.edu.et)' };
+    }
+    
+    // Password validation (only for sign in)
+    if (activeTab === 'signin') {
+      if (!values.password) {
+        errors.password = { message: 'Password is required' };
+      } else if (values.password.length < 6) {
+        errors.password = { message: 'Password must be at least 6 characters' };
+      }
+    }
+    
+    return {
+      values: Object.keys(errors).length === 0 ? values : {},
+      errors
+    };
+  };
 
   const signInForm = useForm<SignInFormValues>({
-    resolver: zodResolver(signInSchema),
+    resolver: (values) => customResolver(values),
     defaultValues: { email: '', password: '' },
   });
 
   const resetPasswordForm = useForm<ResetPasswordFormValues>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: () => customResolver({ email: '' }),
     defaultValues: { email: '' },
   });
 
@@ -97,17 +114,12 @@ export default function SignIn({
     await onResetPassword(values.email);
     resetPasswordForm.reset();
     toast({
-      title: t('success.reset.title'),
-      description: t('success.reset.description'),
+      title: 'Reset link sent',
+      description: 'Check your email for the password reset link.',
     });
   };
 
-  // Helper to get translated error messages
-  const getErrorMessage = (key: string | string[]) => {
-    const translation = t(Array.isArray(key) ? key[0] as any : key as any);
-    return translation !== (Array.isArray(key) ? key[0] : key) ? translation : undefined;
-  };
-
+  
   return (
     <div className="w-full max-w-md mx-auto">
       <Tabs 
@@ -117,17 +129,17 @@ export default function SignIn({
         className="w-full"
       >
         <TabsList className="grid w-full grid-cols-2 p-1 mb-8 bg-slate-100/80 dark:bg-slate-800/80 rounded-xl">
-          <TabsTrigger 
+          <TabsTrigger
             value="signin"
             className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-md transition-all"
           >
-            {t('auth.signin.button')}
+            Sign In
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="reset"
             className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950 data-[state=active]:shadow-md transition-all"
           >
-            {t('auth.reset.title')}
+            Reset Password
           </TabsTrigger>
         </TabsList>
 
@@ -135,10 +147,10 @@ export default function SignIn({
           <div className="space-y-6">
             <div className="space-y-2">
               <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                {t('auth.signin.title')}
+                Welcome back
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                {t('auth.signin.subtitle')}
+                Enter your credentials to access your account
               </p>
             </div>
 
@@ -150,13 +162,13 @@ export default function SignIn({
                   render={({ field, fieldState }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium">
-                        {t('auth.email.label')}
+                        Email
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                           <Input
-                            placeholder={t('auth.email.placeholder')}
+                            placeholder="Enter your email"
                             type="email"
                             autoComplete="email"
                             autoFocus
@@ -174,7 +186,7 @@ export default function SignIn({
                         </div>
                       </FormControl>
                        <FormMessage className="text-xs text-red-600 dark:text-red-400">
-                         {fieldState.error?.message ? getErrorMessage(fieldState.error.message) : null}
+                         {fieldState.error?.message}
                        </FormMessage>
                     </FormItem>
                   )}
@@ -186,23 +198,21 @@ export default function SignIn({
                   render={({ field, fieldState }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
-                        <FormLabel className="text-sm font-medium">
-                          {t('auth.password.label')}
-                        </FormLabel>
+                        <FormLabel>Password</FormLabel>
                         <Button
                           type="button"
                           variant="link"
                           className="h-auto p-0 text-xs font-normal text-blue-600 dark:text-blue-400"
                           onClick={() => setActiveTab('reset')}
                         >
-                          {t('auth.password.forgot')}
+                          Forgot password?
                         </Button>
                       </div>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                           <Input
-                            placeholder={t('auth.password.placeholder')}
+                            placeholder="Enter your password"
                             type="password"
                             autoComplete="current-password"
                             disabled={isLoading}
@@ -219,7 +229,7 @@ export default function SignIn({
                         </div>
                       </FormControl>
                        <FormMessage className="text-xs text-red-600 dark:text-red-400">
-                         {fieldState.error?.message ? getErrorMessage(fieldState.error.message) : null}
+                         {fieldState.error?.message}
                        </FormMessage>
                     </FormItem>
                   )}
@@ -249,10 +259,10 @@ export default function SignIn({
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t('auth.signin.loading')}
+                      Signing in...
                     </>
                   ) : (
-                    t('auth.signin.button')
+                    "Sign In"
                   )}
                 </Button>
               </form>
@@ -269,10 +279,10 @@ export default function SignIn({
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                    {t('auth.reset.sent')}
+                    Reset link sent!
                   </h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm">
-                    {t('auth.reset.checkEmail')}
+                    Check your email for the reset link.
                   </p>
                 </div>
               </div>
@@ -282,17 +292,17 @@ export default function SignIn({
                 onClick={() => setActiveTab('signin')}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('common.back')}
+                Back to Sign In
               </Button>
             </div>
           ) : (
             <div className="space-y-6">
               <div className="space-y-2">
                 <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                  {t('auth.reset.title')}
+                  Reset Password
                 </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  {t('auth.reset.subtitle')}
+                  Enter your email to receive a password reset link.
                 </p>
               </div>
 
@@ -304,13 +314,13 @@ export default function SignIn({
                     render={({ field, fieldState }) => (
                       <FormItem>
                         <FormLabel className="text-sm font-medium">
-                          {t('auth.email.label')}
+                          Email
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                             <Input
-                              placeholder={t('auth.email.placeholder')}
+                              placeholder="Enter your email"
                               type="email"
                               autoComplete="email"
                               disabled={isLoading}
@@ -327,7 +337,7 @@ export default function SignIn({
                           </div>
                         </FormControl>
                          <FormMessage className="text-xs text-red-600 dark:text-red-400">
-                           {fieldState.error?.message ? getErrorMessage(fieldState.error.message) : null}
+                           {fieldState.error?.message}
                          </FormMessage>
                       </FormItem>
                     )}
@@ -343,10 +353,10 @@ export default function SignIn({
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t('common.sending')}
+                          Sending...
                         </>
                       ) : (
-                        t('auth.reset.button')
+                        "Send Reset Link"
                       )}
                     </Button>
 
@@ -357,7 +367,7 @@ export default function SignIn({
                       onClick={() => setActiveTab('signin')}
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />
-                      {t('common.back')}
+                      Back to Sign In
                     </Button>
                   </div>
                 </form>
@@ -369,12 +379,12 @@ export default function SignIn({
 
       <div className="mt-8 text-center">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          {t('common.noAccount')}{' '}
+          Don't have an account? 
           <Button 
             variant="link" 
             className="p-0 text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300"
           >
-            {t('common.contactAdmin')}
+            Contact administrator
           </Button>
         </p>
       </div>

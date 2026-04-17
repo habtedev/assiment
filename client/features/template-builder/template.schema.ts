@@ -38,21 +38,10 @@ const questionSchema = z.object({
 
 // Main template schema
 export const templateSchema = z.object({
-  name: z.object({
-    en: z.string().optional(),
-    am: z.string().optional(),
-  }).refine(data => data.en?.trim() || data.am?.trim(), {
-    message: "Template name is required in at least one language",
-  }),
-  intro: z.object({
-    en: z.string().optional(),
-    am: z.string().optional(),
-  }),
-  why: z.object({
-    en: z.string().optional(),
-    am: z.string().optional(),
-  }),
-  calendarType: z.enum(['ethiopian', 'gregorian']),
+  name: z.string().min(1, "Template name is required"),
+  intro: z.string().optional(),
+  why: z.string().optional(),
+  calendarType: z.enum(['gregorian']),
   academicYear: z.string().min(1, "Academic year is required"),
   semester: z.string().min(1, "Semester is required"),
   questions: z.array(questionSchema),

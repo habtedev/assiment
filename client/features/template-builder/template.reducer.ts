@@ -1,20 +1,21 @@
 // features/template-builder/template.reducer.ts
 import { TemplateFormState, TemplateFormAction } from './template.types';
 
-const createEmptyChoice = () => ({
+const createEmptyChoice = (initialText?: string) => ({
   id: Math.random().toString(36).substr(2, 9),
-  translations: { en: '', am: '' },
+  translations: initialText ? { en: initialText, am: '' } : { en: '', am: '' },
 });
 
 const createEmptyQuestionText = () => ({ en: '', am: '' });
 
 export const initialState: TemplateFormState = {
-  name: { en: '', am: '' },
-  intro: { en: '', am: '' },
-  why: { en: '', am: '' },
-  calendarType: 'ethiopian',
+  name: '',
+  intro: '',
+  why: '',
+  calendarType: 'gregorian',
   academicYear: '',
   semester: '',
+  targetAudience: 'student',
   questions: [],
   currentQuestion: {
     type: 'multiple',
@@ -38,24 +39,23 @@ export function templateReducer(
   state: TemplateFormState,
   action: TemplateFormAction
 ): TemplateFormState {
-  console.log("🎬 Reducer action:", action.type, action); // Debug log
   switch (action.type) {
     case 'SET_NAME':
       return {
         ...state,
-        name: { ...state.name, [action.payload.lang]: action.payload.value },
+        name: action.payload,
       };
 
     case 'SET_INTRO':
       return {
         ...state,
-        intro: { ...state.intro, [action.payload.lang]: action.payload.value },
+        intro: action.payload,
       };
 
     case 'SET_WHY':
       return {
         ...state,
-        why: { ...state.why, [action.payload.lang]: action.payload.value },
+        why: action.payload,
       };
 
     case 'SET_CALENDAR_TYPE':
@@ -71,6 +71,9 @@ export function templateReducer(
 
     case 'SET_SEMESTER':
       return { ...state, semester: action.payload };
+
+    case 'SET_TARGET_AUDIENCE':
+      return { ...state, targetAudience: action.payload };
 
     case 'SET_CURRENT_STEP':
       return { ...state, currentStep: action.payload };
@@ -119,7 +122,7 @@ export function templateReducer(
         ...state,
         currentQuestion: {
           ...state.currentQuestion,
-          choices: [...state.currentQuestion.choices, createEmptyChoice()],
+          choices: [...state.currentQuestion.choices, createEmptyChoice(action.payload)],
         },
       };
 
@@ -232,35 +235,28 @@ export function templateReducer(
 
     case 'LOAD_INITIAL': {
       // Ensure we properly load all fields
-      const newState = {
+      const newState: TemplateFormState = {
         ...initialState, // Start with fresh state
         ...state, // Keep current state
         ...action.payload, // Override with payload
-        name: {
-          en: action.payload.name?.en || '',
-          am: action.payload.name?.am || '',
-        },
-        intro: {
-          en: action.payload.intro?.en || '',
-          am: action.payload.intro?.am || '',
-        },
-        why: {
-          en: action.payload.why?.en || '',
-          am: action.payload.why?.am || '',
-        },
+        name: action.payload.name || '',
+        intro: action.payload.intro || '',
+        why: action.payload.why || '',
         academicYear: action.payload.academicYear || '',
         semester: action.payload.semester || '',
-        calendarType: action.payload.calendarType || 'ethiopian',
+        targetAudience: action.payload.targetAudience || 'student',
+        calendarType: action.payload.calendarType || 'gregorian',
         questions: action.payload.questions || [],
         currentStep: 'details',
         currentLang: 'en',
         isSaving: false,
         completedSteps: {
-          details: Boolean(action.payload.name?.en || action.payload.name?.am),
+          details: Boolean(action.payload.name),
           questions: true,
-          preview: Boolean(action.payload.name?.en || action.payload.name?.am),
+          preview: Boolean(action.payload.name),
         },
       };
+
       return newState;
     }
 

@@ -14,14 +14,14 @@ const templateEditSchema = z.object({
   questions: z.array(z.string()).min(1, 'At least one question required'),
 });
 
-export default function TemplateEditForm({ initialData, onSubmit }) {
+export default function TemplateEditForm({ initialData, onSubmit }: { initialData?: any; onSubmit: (values: any) => Promise<void> }) {
   const { toast } = useToast();
   const form = useForm({
     resolver: zodResolver(templateEditSchema),
     defaultValues: initialData || { title: '', name: '', calendar: '', description: '', questions: [''] },
   });
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: any) => {
     try {
       await onSubmit(values);
       toast({ title: 'Template updated', description: 'Changes saved successfully.' });
@@ -44,7 +44,7 @@ export default function TemplateEditForm({ initialData, onSubmit }) {
           </tr>
         </thead>
         <tbody>
-          {form.watch('questions').map((q, idx) => (
+          {form.watch('questions').map((q: string, idx: number) => (
             <tr key={idx}>
               <td className="p-2 border">{idx + 1}</td>
               <td className="p-2 border">

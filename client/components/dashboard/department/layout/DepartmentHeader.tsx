@@ -41,23 +41,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-import { useTranslation } from "react-i18next";
-import i18n from "@/i18n";
 import { getJwtToken } from "@/lib/auth";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/shared/header/ThemeToggle";
-
-// Types
-type Language = "en" | "am";
 
 interface DepartmentHeaderProps {
   departmentName?: string;
@@ -74,60 +62,6 @@ interface DepartmentHeaderProps {
   teacherCount?: number;
   studentCount?: number;
 }
-
-// Translation keys for all text
-const translations = {
-  en: {
-    search: "Search courses, teachers...",
-    mobileSearch: "Search...",
-    notifications: "Notifications",
-    new: "new",
-    viewAll: "View all",
-    profile: "Profile",
-    settings: "Settings",
-    logout: "Logout",
-    quickStats: "Quick Stats",
-    students: "Students",
-    teachers: "Teachers",
-    programs: "Programs",
-    dashboard: "Dashboard",
-    courses: "Courses",
-    reports: "Reports",
-    mainOverview: "Main overview",
-    academicPrograms: "Academic programs",
-    courseList: "Course list",
-    facultyMembers: "Faculty members",
-    studentList: "Student list",
-    analytics: "Analytics & reports",
-    departmentSettings: "Department settings",
-    selectLanguage: "Select Language",
-  },
-  am: {
-    search: "ኮርሶችን እና መምህራንን ይፈልጉ...",
-    mobileSearch: "ፈልግ...",
-    notifications: "ማሳወቂያዎች",
-    new: "አዲስ",
-    viewAll: "ሁሉንም ይመልከቱ",
-    profile: "መገለጫ",
-    settings: "ማስተካከያ",
-    logout: "ውጣ",
-    quickStats: "ፈጣን መረጃ",
-    students: "ተማሪዎች",
-    teachers: "መምህራን",
-    programs: "ፕሮግራሞች",
-    dashboard: "ዳሽቦርድ",
-    courses: "ኮርሶች",
-    reports: "ሪፖርቶች",
-    mainOverview: "ዋና ገጽ",
-    academicPrograms: "የትምህርት ፕሮግራሞች",
-    courseList: "ኮርሶች ዝርዝር",
-    facultyMembers: "መምህራን",
-    studentList: "ተማሪዎች ዝርዝር",
-    analytics: "ሪፖርቶች",
-    departmentSettings: "የመምሪያ ማስተካከያ",
-    selectLanguage: "ቋንቋ ምረጥ",
-  },
-};
 
 export function DepartmentHeader({
   departmentName = "Department of Computer Science",
@@ -147,16 +81,13 @@ export function DepartmentHeader({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
-  const [currentLang, setCurrentLang] = useState<Language>("en");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    setCurrentLang(i18n.language as Language);
   }, []);
 
   // Handle scroll effect
@@ -182,32 +113,20 @@ export function DepartmentHeader({
       });
 
       toast({
-        title: currentLang === "am" ? "👋 ደህና ሁን" : "👋 See you soon!",
-        description: currentLang === "am" 
-          ? "በተሳካ ሁኔታ ወጥተዋል" 
-          : "You have been successfully logged out.",
+        title: "👋 See you soon!",
+        description: "You have been successfully logged out.",
       });
 
       router.push("/");
     } catch (error) {
       toast({
-        title: currentLang === "am" ? "❌ ስህተት" : "❌ Error",
-        description: currentLang === "am"
-          ? "መውጣት አልተሳካም"
-          : "Failed to logout",
+        title: "❌ Error",
+        description: "Failed to logout",
         variant: "destructive",
       });
     }
   };
 
-  const handleLanguageChange = (lang: Language) => {
-    setCurrentLang(lang);
-    i18n.changeLanguage(lang);
-    toast({
-      title: lang === "am" ? "🌙 አማርኛ ተመረጠ" : "☀️ English Selected",
-      duration: 2000,
-    });
-  };
 
   const handleBack = () => {
     if (onBack) {
@@ -224,55 +143,53 @@ export function DepartmentHeader({
     return path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, " ");
   };
 
-  const lang = currentLang;
-  const txt = translations[lang];
 
   const navigationItems = [
-    { 
-      label: txt.dashboard, 
-      href: "/dashboard/department", 
+    {
+      label: "Dashboard",
+      href: "/dashboard/department",
       icon: LayoutDashboard,
-      description: txt.mainOverview
+      description: "Main overview"
     },
-    { 
-      label: txt.programs, 
-      href: "/dashboard/department/programs", 
+    {
+      label: "Programs",
+      href: "/dashboard/department/programs",
       icon: BookMarked,
       badge: programCount,
-      description: txt.academicPrograms
+      description: "Academic programs"
     },
-    { 
-      label: txt.courses, 
-      href: "/dashboard/department/courses", 
+    {
+      label: "Courses",
+      href: "/dashboard/department/courses",
       icon: BookOpen,
       badge: 24,
-      description: txt.courseList
+      description: "Course list"
     },
-    { 
-      label: txt.teachers, 
-      href: "/dashboard/department/teachers", 
+    {
+      label: "Teachers",
+      href: "/dashboard/department/teachers",
       icon: Users,
       badge: teacherCount,
-      description: txt.facultyMembers
+      description: "Faculty members"
     },
-    { 
-      label: txt.students, 
-      href: "/dashboard/department/students", 
+    {
+      label: "Students",
+      href: "/dashboard/department/students",
       icon: GraduationCap,
       badge: studentCount,
-      description: txt.studentList
+      description: "Student list"
     },
-    { 
-      label: txt.reports, 
-      href: "/dashboard/department/reports", 
+    {
+      label: "Reports",
+      href: "/dashboard/department/reports",
       icon: BarChart3,
-      description: txt.analytics
+      description: "Analytics & reports"
     },
-    { 
-      label: txt.settings, 
-      href: "/dashboard/department/settings", 
+    {
+      label: "Settings",
+      href: "/dashboard/department/settings",
       icon: Settings,
-      description: txt.departmentSettings
+      description: "Department settings"
     },
   ];
 
@@ -327,15 +244,15 @@ export function DepartmentHeader({
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <p className="text-base font-bold text-amber-600">{studentCount}</p>
-                      <p className="text-xs text-muted-foreground">{txt.students}</p>
+                      <p className="text-xs text-muted-foreground">Students</p>
                     </div>
                     <div>
                       <p className="text-base font-bold text-amber-600">{teacherCount}</p>
-                      <p className="text-xs text-muted-foreground">{txt.teachers}</p>
+                      <p className="text-xs text-muted-foreground">Teachers</p>
                     </div>
                     <div>
                       <p className="text-base font-bold text-amber-600">{programCount}</p>
-                      <p className="text-xs text-muted-foreground">{txt.programs}</p>
+                      <p className="text-xs text-muted-foreground">Programs</p>
                     </div>
                   </div>
                 </div>
@@ -369,7 +286,7 @@ export function DepartmentHeader({
                     onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4" />
-                    <span className="text-sm">{txt.logout}</span>
+                    <span className="text-sm">Logout</span>
                   </Button>
                 </nav>
               </SheetContent>
@@ -409,7 +326,7 @@ export function DepartmentHeader({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={txt.search}
+                placeholder="Search courses, teachers..."
                 className="pl-9 pr-4 h-9 text-sm rounded-full bg-muted/50 border-0 focus-visible:ring-2 focus-visible:ring-amber-500"
               />
             </div>
@@ -418,30 +335,6 @@ export function DepartmentHeader({
           {/* Right Section - Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
             <ThemeToggle />
-            
-            {/* Language Select - shadcn Select */}
-            <Select value={currentLang} onValueChange={handleLanguageChange}>
-              <SelectTrigger className="w-[90px] h-9 rounded-full border-amber-200 bg-muted/50">
-                <SelectValue>
-                  <span className="flex items-center gap-1">
-                    <Globe className="h-3.5 w-3.5" />
-                    <span className="text-xs">{currentLang === "am" ? "አማ" : "EN"}</span>
-                  </span>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en" className="text-sm">
-                  <span className="flex items-center gap-2">
-                    <span>🇬🇧</span> English
-                  </span>
-                </SelectItem>
-                <SelectItem value="am" className="text-sm">
-                  <span className="flex items-center gap-2">
-                    <span>🇪🇹</span> አማርኛ
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
 
             {/* Notifications */}
             <DropdownMenu>
@@ -461,9 +354,9 @@ export function DepartmentHeader({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-72">
                 <DropdownMenuLabel className="flex items-center justify-between text-sm">
-                  <span>{txt.notifications}</span>
+                  <span>Notifications</span>
                   <Badge variant="outline" className="rounded-full text-[10px] h-5">
-                    {notificationCount} {txt.new}
+                    {notificationCount} new
                   </Badge>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -476,11 +369,11 @@ export function DepartmentHeader({
                         </div>
                         <div className="flex-1">
                           <p className="text-xs font-medium">
-                            {i === 1 
-                              ? (lang === "am" ? "አዲስ ግምገማ" : "New evaluation")
+                            {i === 1
+                              ? "New evaluation"
                               : i === 2
-                                ? (lang === "am" ? "አዲስ ተማሪ" : "New student")
-                                : (lang === "am" ? "ሪፖርት ዝግጁ" : "Report ready")}
+                                ? "New student"
+                                : "Report ready"}
                           </p>
                           <p className="text-[10px] text-muted-foreground">
                             {i === 1 ? "2m" : i === 2 ? "1h" : "3h"}
@@ -492,7 +385,7 @@ export function DepartmentHeader({
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="justify-center text-xs h-8">
-                  {txt.viewAll}
+                  View all
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -522,11 +415,11 @@ export function DepartmentHeader({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer gap-2 text-xs h-8">
                   <User className="h-3.5 w-3.5" />
-                  {txt.profile}
+                  Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer gap-2 text-xs h-8">
                   <Settings className="h-3.5 w-3.5" />
-                  {txt.settings}
+                  Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -534,7 +427,7 @@ export function DepartmentHeader({
                   onClick={handleLogout}
                 >
                   <LogOut className="h-3.5 w-3.5" />
-                  {txt.logout}
+                  Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -559,7 +452,7 @@ export function DepartmentHeader({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={txt.mobileSearch}
+              placeholder="Search..."
               className="pl-9 pr-4 h-9 text-sm rounded-full bg-muted/50 border-0"
             />
           </div>

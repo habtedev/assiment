@@ -52,14 +52,9 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-import { useTranslation } from "react-i18next";
-import i18n from "@/i18n";
 import { getJwtToken } from "@/lib/auth";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/shared/header/ThemeToggle";
-
-// Types
-type Language = "en" | "am";
 
 interface CollegeHeaderProps {
   collegeName?: string;
@@ -73,11 +68,6 @@ interface CollegeHeaderProps {
   userAvatar?: string;
   notificationCount?: number;
 }
-
-const LANGUAGES = [
-  { code: "en" as Language, label: "English", shortLabel: "EN", flag: "🇬🇧" },
-  { code: "am" as Language, label: "አማርኛ", shortLabel: "አማ", flag: "🇪🇹" },
-];
 
 export function CollegeHeader({
   collegeName = "College of Informatics",
@@ -94,20 +84,14 @@ export function CollegeHeader({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
-  const [currentLang, setCurrentLang] = useState<Language>("en");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    setCurrentLang(i18n.language as Language);
-  }, [i18n.language]);
 
   // Handle scroll effect
   useEffect(() => {
@@ -132,32 +116,20 @@ export function CollegeHeader({
       });
 
       toast({
-        title: currentLang === "am" ? "👋 ደህና ሁን" : "👋 See you soon!",
-        description: currentLang === "am" 
-          ? "በተሳካ ሁኔታ ወጥተዋል" 
-          : "You have been successfully logged out.",
+        title: "👋 See you soon!",
+        description: "You have been successfully logged out.",
       });
 
       router.push("/");
     } catch (error) {
       toast({
-        title: currentLang === "am" ? "❌ ስህተት" : "❌ Error",
-        description: currentLang === "am"
-          ? "መውጣት አልተሳካም"
-          : "Failed to logout",
+        title: "❌ Error",
+        description: "Failed to logout",
         variant: "destructive",
       });
     }
   };
 
-  const handleLanguageChange = (lang: Language) => {
-    setCurrentLang(lang);
-    i18n.changeLanguage(lang);
-    toast({
-      title: lang === "am" ? "🌙 አማርኛ ተመረጠ" : "☀️ English Selected",
-      duration: 2000,
-    });
-  };
 
   const handleBack = () => {
     if (onBack) {
@@ -175,12 +147,12 @@ export function CollegeHeader({
   };
 
   const navigationItems = [
-    { label: currentLang === "am" ? "ዳሽቦርድ" : "Dashboard", href: "/dashboard/college", icon: LayoutDashboard },
-    { label: currentLang === "am" ? "ተማሪዎች" : "Students", href: "/dashboard/college/students", icon: Users },
-    { label: currentLang === "am" ? "መምህራን" : "Teachers", href: "/dashboard/college/teachers", icon: GraduationCap },
-    { label: currentLang === "am" ? "ኮርሶች" : "Courses", href: "/dashboard/college/courses", icon: BookOpen },
-    { label: currentLang === "am" ? "ሪፖርቶች" : "Reports", href: "/dashboard/college/reports", icon: Calendar },
-    { label: currentLang === "am" ? "ማስተካከያ" : "Settings", href: "/dashboard/college/settings", icon: Settings },
+    { label: "Dashboard", href: "/dashboard/college", icon: LayoutDashboard },
+    { label: "Students", href: "/dashboard/college/students", icon: Users },
+    { label: "Teachers", href: "/dashboard/college/teachers", icon: GraduationCap },
+    { label: "Courses", href: "/dashboard/college/courses", icon: BookOpen },
+    { label: "Reports", href: "/dashboard/college/reports", icon: Calendar },
+    { label: "Settings", href: "/dashboard/college/settings", icon: Settings },
   ];
 
   if (!mounted) {
@@ -247,7 +219,7 @@ export function CollegeHeader({
                     onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4" />
-                    {currentLang === "am" ? "ውጣ" : "Logout"}
+                    Logout
                   </Button>
                 </nav>
               </SheetContent>
@@ -304,7 +276,7 @@ export function CollegeHeader({
             )}>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={currentLang === "am" ? "ፈልግ..." : "Search..."}
+                placeholder="Search..."
                 className="pl-9 pr-4 rounded-full bg-muted/50 border-0 focus-visible:ring-2 focus-visible:ring-amber-500"
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
@@ -316,23 +288,6 @@ export function CollegeHeader({
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             
-            <Select
-              value={currentLang}
-              onValueChange={handleLanguageChange}
-            >
-              <SelectTrigger className="w-28 rounded-full border-amber-200 bg-muted/50 focus:ring-amber-500">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                {LANGUAGES.map((lang) => (
-                  <SelectItem key={lang.code} value={lang.code} className="flex items-center gap-2">
-                    <span className="mr-2">{lang.flag}</span>
-                    {lang.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -355,9 +310,9 @@ export function CollegeHeader({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80">
                 <DropdownMenuLabel className="flex items-center justify-between">
-                  <span>{currentLang === "am" ? "ማሳወቂያዎች" : "Notifications"}</span>
+                  <span>Notifications</span>
                   <Badge variant="outline" className="rounded-full text-xs">
-                    {notificationCount} {currentLang === "am" ? "አዲስ" : "new"}
+                    {notificationCount} new
                   </Badge>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -371,10 +326,10 @@ export function CollegeHeader({
                         <div>
                           <p className="text-sm font-medium">
                             {i === 1 
-                              ? (currentLang === "am" ? "አዲስ ግምገማ" : "New evaluation")
+                              ? "New evaluation"
                               : i === 2
-                                ? (currentLang === "am" ? "አዲስ ተማሪ" : "New student")
-                                : (currentLang === "am" ? "ሪፖርት ዝግጁ" : "Report ready")}
+                                ? "New student"
+                                : "Report ready"}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {i === 1 ? "2 min ago" : i === 2 ? "1 hour ago" : "3 hours ago"}
@@ -386,7 +341,7 @@ export function CollegeHeader({
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="justify-center text-xs text-muted-foreground">
-                  {currentLang === "am" ? "ሁሉንም ይመልከቱ" : "View all"}
+                  View all
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -421,11 +376,11 @@ export function CollegeHeader({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer gap-2">
                   <User className="h-4 w-4" />
-                  {currentLang === "am" ? "መገለጫ" : "Profile"}
+                  Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer gap-2">
                   <Settings className="h-4 w-4" />
-                  {currentLang === "am" ? "ማስተካከያ" : "Settings"}
+                  Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -433,7 +388,7 @@ export function CollegeHeader({
                   onClick={handleLogout}
                 >
                   <LogOut className="h-4 w-4" />
-                  {currentLang === "am" ? "ውጣ" : "Logout"}
+                  Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -458,7 +413,7 @@ export function CollegeHeader({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={currentLang === "am" ? "ፈልግ..." : "Search..."}
+              placeholder="Search..."
               className="pl-9 pr-4 rounded-full bg-muted/50 border-0 focus-visible:ring-2 focus-visible:ring-amber-500"
             />
           </div>

@@ -3,12 +3,21 @@ export const editCollege = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+
+    // Convert string fields to multilingual format if needed
+    const dataToUpdate: any = { ...updateData };
+
+    if (updateData.name && typeof updateData.name === 'string') {
+      dataToUpdate.name = { en: updateData.name, am: updateData.name };
+    }
+
     const college = await prisma.college.update({
       where: { id: Number(id) },
-      data: updateData,
+      data: dataToUpdate,
     });
     res.json(college);
   } catch (error) {
+    console.error('[EDIT COLLEGE ERROR]', error);
     res.status(400).json({ error: 'Failed to update college', details: error instanceof Error ? error.message : error });
   }
 };
@@ -17,9 +26,24 @@ export const editCollege = async (req: AuthRequest, res: Response) => {
 export const deleteCollege = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    console.log('[DELETE COLLEGE] Deleting college with ID:', id);
+
+    // First, delete all departments associated with this college
+    await prisma.department.deleteMany({
+      where: { collegeId: Number(id) }
+    });
+
+    // Then, delete all users associated with this college
+    await prisma.user.deleteMany({
+      where: { collegeId: Number(id) }
+    });
+
+    // Finally, delete the college
     await prisma.college.delete({ where: { id: Number(id) } });
+
     res.json({ message: 'College deleted' });
   } catch (error) {
+    console.error('[DELETE COLLEGE ERROR]', error);
     res.status(400).json({ error: 'Failed to delete college', details: error instanceof Error ? error.message : error });
   }
 };
@@ -130,7 +154,7 @@ export const addDepartment = async (req: AuthRequest, res: Response) => {
 // Admin adds a new college and admin user
 export const adminAddCollege = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, email, adminName, adminEmail, adminPassword, collegeName, code, descriptionEn, descriptionAm, phone, addressEn, addressAm, academicYear, status } = req.body;
+    const { name, email, adminName, adminPassword, code, phone, academicYear } = req.body;
     console.log('[ADD COLLEGE] Request body:', req.body);
     // Ensure COLLEGE role exists
     let collegeRole = await prisma.role.findUnique({ where: { name: 'COLLEGE' } });
@@ -140,31 +164,27 @@ export const adminAddCollege = async (req: AuthRequest, res: Response) => {
     // Create the college
     const college = await prisma.college.create({
       data: {
-        name: { en: collegeName, am: collegeName },
+        name: { en: name || "", am: name || "" },
         code,
-        description: { en: descriptionEn, am: descriptionAm },
+        description: { en: "", am: "" },
         email,
         phone,
-        address: { en: addressEn, am: addressAm },
+        address: { en: "", am: "" },
         academicYear,
-        status,
+        status: "active",
       }
     });
     // Create the college user with COLLEGE role
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
     const user = await prisma.user.create({
       data: {
-        email: email, // Use the email from request body
+        email: email,
         name: adminName,
         password: hashedPassword,
         roleId: collegeRole.id,
         collegeId: college.id,
       },
     });
-    // Optionally, you can generate a JWT and send it back for auto-login
-    // const token = jwt.sign({ userId: user.id, role: user.role.name }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    // res.cookie('token', token, { httpOnly: true });
-    // res.status(201).json({ message: 'College and user created', user, college, redirect: `/college/${college.code}` });
     res.status(201).json({ message: 'College and user created', user, college });
   } catch (error) {
     console.error('[ADD COLLEGE ERROR]', error);

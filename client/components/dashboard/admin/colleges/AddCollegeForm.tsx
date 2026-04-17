@@ -76,8 +76,8 @@ export default function AddCollegeForm() {
         {/* Add College Form */}
         <Card className="border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-xl">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-500 to-rose-500 flex items-center justify-center text-white">
+            <div className="flex items-center gap-2 cursor-pointer">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-500 to-rose-500 flex items-center justify-center text-white cursor-pointer">
                 <PlusCircle className="h-4 w-4" />
               </div>
               <CardTitle>Add New College</CardTitle>

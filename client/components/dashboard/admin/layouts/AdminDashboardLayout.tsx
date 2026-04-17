@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import AdminSidebar from "./Sidebar";
 import { AdminHeader } from "./Header";
 import { cn } from "@/lib/utils";
@@ -14,25 +15,36 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { getUserData } from "@/lib/auth";
 
 interface AdminDashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children }) => {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [userData, setUserData] = useState<any>(null);
   const { theme } = useTheme();
   const { toast } = useToast();
 
-  // Handle mounting
+  // Handle mounting and authentication check
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Fetch user data from localStorage
+    const user = getUserData();
+    if (user) {
+      setUserData(user);
+    } else {
+      // Redirect to login if not authenticated
+      router.push("/");
+    }
+  }, [router]);
 
   // Handle scroll effect
   useEffect(() => {
@@ -120,15 +132,15 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  if (!mounted) {
+  if (!mounted || !userData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-black dark:via-black dark:to-black flex items-center justify-center">
         <div className="w-full max-w-3xl mx-auto px-4">
           <div className="flex flex-col gap-6 items-center">
             <img
               src="https://res.cloudinary.com/di3ll9dgt/image/upload/v1770387114/new_ghw5vi.jpg"
               alt="University Logo"
-              className="w-20 h-20 rounded-full object-cover shadow-lg border-4 border-white dark:border-slate-900"
+              className="w-20 h-20 rounded-full object-cover shadow-lg border-4 border-white dark:border-black"
               style={{ background: '#fff' }}
             />
             <div className="flex gap-4 items-center w-full justify-center">
@@ -144,12 +156,12 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-black dark:via-black dark:to-black">
       {/* Enhanced Background Effects */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {/* Animated gradient orbs */}
         <motion.div
-          className="absolute -top-40 -right-32 h-96 w-96 rounded-full bg-gradient-to-r from-amber-200/40 to-rose-200/40 dark:from-amber-900/20 dark:to-rose-900/20 blur-3xl"
+          className="absolute -top-40 -right-32 h-96 w-96 rounded-full bg-gradient-to-r from-indigo-200/40 to-purple-200/40 dark:from-indigo-900/20 dark:to-purple-900/20 blur-3xl"
           animate={{
             x: [0, 50, 0],
             y: [0, -30, 0],
@@ -161,7 +173,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
           }}
         />
         <motion.div
-          className="absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-gradient-to-r from-amber-200/40 to-rose-200/40 dark:from-amber-900/20 dark:to-rose-900/20 blur-3xl"
+            className="absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-gradient-to-r from-indigo-200/40 to-purple-200/40 dark:from-indigo-900/20 dark:to-purple-900/20 blur-3xl"
           animate={{
             x: [0, -50, 0],
             y: [0, 30, 0],
@@ -173,7 +185,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
           }}
         />
         <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-gradient-to-r from-amber-100/20 to-rose-100/20 dark:from-amber-900/10 dark:to-rose-900/10 blur-3xl"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-gradient-to-r from-indigo-100/20 to-purple-100/20 dark:from-indigo-900/10 dark:to-purple-900/10 blur-3xl"
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.5, 0.3],
@@ -192,7 +204,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
         variant="ghost"
         size="icon"
         onClick={toggleFullscreen}
-        className="fixed bottom-4 right-4 z-[60] rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-amber-200/50 dark:border-amber-800/50 shadow-lg hover:shadow-xl transition-all hidden lg:flex"
+        className="fixed bottom-4 right-4 z-60 rounded-full bg-white/80 dark:bg-black/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-800/50 shadow-lg hover:shadow-xl transition-all hidden lg:flex"
       >
         {isFullscreen ? (
           <Minimize2 className="h-4 w-4" />
@@ -217,7 +229,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
               <Button
                 variant="ghost"
                 size="icon"
-                className="fixed top-4 left-4 z-50 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-lg hover:shadow-xl transition-all"
+                className="fixed top-4 left-4 z-50 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg hover:shadow-xl transition-all"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -245,50 +257,25 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         >
           {/* Header */}
-          <AdminHeader 
-            onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
-            isSidebarOpen={sidebarOpen} 
+          <AdminHeader
+            onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+            isSidebarOpen={sidebarOpen}
+            userName={userData?.name}
+            userEmail={userData?.email}
+            userAvatar={userData?.avatar}
+            userRole={userData?.role}
           />
 
           {/* Scroll Progress Indicator */}
           <motion.div
-            className="h-0.5 bg-gradient-to-r from-amber-500 to-rose-500"
+            className="h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500"
             style={{ scaleX: isScrolled ? 1 : 0, transformOrigin: "0%" }}
           />
 
           {/* Main Content */}
           <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-6">
-              {/* Welcome Banner */}
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-rose-500/10 dark:from-amber-500/5 dark:to-rose-500/5 border border-amber-200/50 dark:border-amber-800/50 backdrop-blur-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-rose-600 rounded-full blur-md opacity-40 animate-pulse" />
-                    <Sparkles className="relative h-5 w-5 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-medium">Welcome back, Administrator</h2>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date().toLocaleDateString("en-US", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="rounded-full gap-1">
-                    <Zap className="h-3 w-3 text-amber-500" />
-                    <span>System Ready</span>
-                  </Badge>
-                </div>
-              </motion.div>
+
 
               {/* Page Content */}
               <motion.div
@@ -303,22 +290,22 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
 
           {/* Enhanced Footer */}
           <footer className={cn(
-            "border-t border-amber-200/50 dark:border-amber-800/50 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm py-3 px-4 md:px-6 transition-all",
+            "border-t border-gray-200/50 dark:border-gray-800/50 bg-white/50 dark:bg-black/50 backdrop-blur-sm py-3 px-4 md:px-6 transition-all",
             isScrolled && "shadow-lg"
           )}>
-            <div className="flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground gap-3">
+            <div className="flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 dark:text-gray-400 gap-3">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
-                  <Heart className="h-3.5 w-3.5 text-rose-500 fill-rose-500" />
+                  <Heart className="h-3.5 w-3.5 text-purple-500 fill-purple-500" />
                   <span>© 2026 University of Gondar</span>
                 </div>
                 <span className="hidden md:inline">•</span>
                 <span className="hidden md:inline">Teacher Assessment System v3.0</span>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-amber-500" />
+                  <Shield className="h-3.5 w-3.5 text-indigo-500" />
                   <span>Secure Portal</span>
                 </div>
                 <span className="hidden md:inline">•</span>
@@ -348,12 +335,12 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed bottom-4 left-4 z-[60] hidden lg:block"
+        className="fixed bottom-4 left-4 z-60 hidden lg:block"
       >
-        <Badge variant="outline" className="rounded-full px-3 py-1.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-amber-200/50 gap-2">
+        <Badge variant="outline" className="rounded-full px-3 py-1.5 bg-white/80 dark:bg-black/80 backdrop-blur-sm border-gray-200/50 dark:border-gray-800/50 gap-2">
           <kbd className="text-xs bg-muted px-1.5 py-0.5 rounded">⌘B</kbd>
           <span className="text-xs">Toggle sidebar</span>
-          <span className="w-1 h-1 rounded-full bg-amber-300" />
+          <span className="w-1 h-1 rounded-full bg-indigo-300" />
           <kbd className="text-xs bg-muted px-1.5 py-0.5 rounded">F11</kbd>
           <span className="text-xs">Fullscreen</span>
         </Badge>

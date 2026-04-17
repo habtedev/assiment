@@ -10,7 +10,7 @@ export default function EditTemplatePage() {
     questions: ['What is your name?', 'How do you rate the course?'],
   };
 
-  const handleEditSubmit = async (values) => {
+  const handleEditSubmit = async (values: any) => {
     // Call API to update template
     // await fetch(...)
     console.log('Updated values:', values);

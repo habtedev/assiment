@@ -20,6 +20,10 @@ export function useSignIn(): UseSignInReturn {
     try {
       // TODO: Replace with real API call
       await new Promise(res => setTimeout(res, 1000));
+      
+      // Backend handles token storage in cookies
+      // No need to store in localStorage
+      
       // throw new Error('Invalid credentials'); // Example error
     } catch (err: any) {
       setError(err.message || 'Sign in failed');

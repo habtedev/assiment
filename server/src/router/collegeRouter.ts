@@ -9,7 +9,13 @@ const router = Router();
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const college = await prisma.college.findUnique({ where: { id: Number(id) } });
+    const college = await prisma.college.findUnique({
+      where: { id: Number(id) },
+      include: {
+        users: true,
+        departments: true,
+      },
+    });
     if (!college) {
       return res.status(404).json({ error: 'College not found' });
     }
@@ -18,14 +24,27 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch college' });
   }
 });
+
+// Get all colleges
 router.get('/', async (req, res) => {
   try {
-    const colleges = await prisma.college.findMany();
+    const colleges = await prisma.college.findMany({
+      include: {
+        users: true,
+        departments: true,
+      },
+    });
     res.json(colleges);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch colleges' });
   }
 });
+
+// Edit college
+router.put('/:id', authenticateJWT, requireRole('ADMIN'), editCollege);
+
+// Delete college
+router.delete('/:id', authenticateJWT, requireRole('ADMIN'), deleteCollege);
 
 // Department head adds student and teacher
 router.post('/add-student', authenticateJWT, requireRole('HEAD'), addStudent);

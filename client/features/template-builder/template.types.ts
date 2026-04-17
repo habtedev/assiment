@@ -1,7 +1,7 @@
 // features/template-builder/template.types.ts
 export type Language = "en" | "am";
 export type QuestionType = "multiple" | "paragraph";
-export type CalendarType = "ethiopian" | "gregorian";
+export type CalendarType = "gregorian";
 export type Step = "details" | "questions" | "preview";
 
 export interface QuestionChoice {
@@ -25,18 +25,19 @@ export interface Question {
 
 export interface TemplateFormState {
   // Basic info
-  name: Record<Language, string>;
-  intro: Record<Language, string>;
-  why: Record<Language, string>;
-  
+  name: string;
+  intro: string;
+  why: string;
+
   // Calendar
   calendarType: CalendarType;
   academicYear: string;
   semester: string;
-  
+  targetAudience?: 'student' | 'college' | 'department';
+
   // Questions
   questions: Question[];
-  
+
   // Current question being built
   currentQuestion: {
     type: QuestionType;
@@ -46,7 +47,7 @@ export interface TemplateFormState {
     description: Record<Language, string>;
     choices: QuestionChoice[];
   };
-  
+
   // UI state
   currentStep: Step;
   currentLang: Language;
@@ -55,12 +56,13 @@ export interface TemplateFormState {
 }
 
 export type TemplateFormAction =
-  | { type: 'SET_NAME'; payload: { lang: Language; value: string } }
-  | { type: 'SET_INTRO'; payload: { lang: Language; value: string } }
-  | { type: 'SET_WHY'; payload: { lang: Language; value: string } }
+  | { type: 'SET_NAME'; payload: string }
+  | { type: 'SET_INTRO'; payload: string }
+  | { type: 'SET_WHY'; payload: string }
   | { type: 'SET_CALENDAR_TYPE'; payload: CalendarType }
   | { type: 'SET_ACADEMIC_YEAR'; payload: string }
   | { type: 'SET_SEMESTER'; payload: string }
+  | { type: 'SET_TARGET_AUDIENCE'; payload: 'student' | 'college' | 'department' }
   | { type: 'SET_CURRENT_STEP'; payload: Step }
   | { type: 'SET_LANGUAGE'; payload: Language }
   | { type: 'SET_QUESTION_TYPE'; payload: QuestionType }
@@ -68,7 +70,7 @@ export type TemplateFormAction =
   | { type: 'SET_QUESTION_WEIGHT'; payload: number }
   | { type: 'SET_QUESTION_TEXT'; payload: { lang: Language; value: string } }
   | { type: 'SET_QUESTION_DESC'; payload: { lang: Language; value: string } }
-  | { type: 'ADD_CHOICE' }
+  | { type: 'ADD_CHOICE'; payload?: string }
   | { type: 'REMOVE_CHOICE'; payload: string }
   | { type: 'UPDATE_CHOICE'; payload: { id: string; lang: Language; value: string } }
   | { type: 'ADD_QUESTION' }

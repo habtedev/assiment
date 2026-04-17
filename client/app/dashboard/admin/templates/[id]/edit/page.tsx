@@ -88,12 +88,9 @@ export default function EditTemplatePage() {
   if (loading) {
     return (
       <AdminDashboardLayout>
-        <div className="p-6 space-y-6">
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <Skeleton className="h-8 w-48" />
-          </div>
-          <Skeleton className="h-[600px] w-full rounded-xl" />
+        <div className="p-4 space-y-4">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-[500px] w-full rounded-lg" />
         </div>
       </AdminDashboardLayout>
     );
@@ -102,25 +99,25 @@ export default function EditTemplatePage() {
   if (error || !template) {
     return (
       <AdminDashboardLayout>
-        <div className="p-6">
+        <div className="p-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.back()}
-            className="gap-2 mb-6"
+            className="gap-2 mb-4 h-8"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          
-          <Card>
-            <CardContent className="py-12 text-center">
-              <AlertCircle className="h-12 w-12 mx-auto text-rose-500 mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Template Not Found</h2>
-              <p className="text-muted-foreground mb-6">
+
+          <Card className="border border-gray-200 dark:border-gray-800">
+            <CardContent className="py-8 text-center">
+              <AlertCircle className="h-8 w-8 mx-auto text-red-500 mb-3" />
+              <h2 className="text-lg font-semibold mb-1.5 text-gray-900 dark:text-white">Template Not Found</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 {error || "The template you're trying to edit doesn't exist."}
               </p>
-              <Button onClick={() => router.push("/dashboard/admin/templates")}>
+              <Button onClick={() => router.push("/dashboard/admin/templates")} className="cursor-pointer">
                 Return to Templates
               </Button>
             </CardContent>
@@ -132,12 +129,12 @@ export default function EditTemplatePage() {
 
   return (
     <AdminDashboardLayout>
-      <div className="p-6">
+      <div className="p-4">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="gap-2 mb-6"
+          className="gap-2 mb-4 h-8"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Templates

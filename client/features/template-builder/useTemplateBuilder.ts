@@ -12,45 +12,68 @@ export function useTemplateBuilder(initialData?: Partial<TemplateFormState>, isE
   // Normalize initialData for edit mode
   function normalizeInitial(data: any): Partial<TemplateFormState> {
     if (!data) return {};
+
+    // Try to get questions from different possible locations
+    const questionsFromDB = data.questions || data.content?.questions || data.content || [];
+
+    // Normalize questions from database format to reducer format
+    const normalizedQuestions = (questionsFromDB || []).map((q: any) => {
+      // If question already has the correct format, return as-is
+      if (q.translations) {
+        return q;
+      }
+
+      // Convert from database format to reducer format
+      const normalized = {
+        id: q.id || Math.random().toString(36).substr(2, 9),
+        type: q.type || 'multiple',
+        required: q.required !== undefined ? q.required : true,
+        weight: q.weight || 3,
+        translations: {
+          en: q.text?.en || q.text ? {
+            text: typeof q.text === 'string' ? q.text : (q.text?.en || ''),
+            description: q.description?.en || (typeof q.description === 'string' ? q.description : ''),
+          } : undefined,
+          am: q.text?.am ? {
+            text: q.text?.am || '',
+            description: q.description?.am || '',
+          } : undefined,
+        },
+        choices: q.choices || q.options || [],
+      };
+      return normalized;
+    });
+
     return {
-      name: data.name || { en: data.title || '', am: data.titleAm || '' },
-      intro: data.intro || { en: data.description || '', am: data.descriptionAm || '' },
-      why: data.why || { en: data.purpose || '', am: data.purposeAm || '' },
+      name: typeof data.name === 'string' ? data.name : (data.name?.en || data.title || ''),
+      intro: typeof data.intro === 'string' ? data.intro : (data.intro?.en || data.description || ''),
+      why: typeof data.why === 'string' ? data.why : (data.why?.en || data.purpose || ''),
       academicYear: data.academicYear || '',
       semester: data.semester || '',
-      calendarType: data.calendarType || 'ethiopian',
-      questions: data.questions || [],
-      id: data.id,
+      targetAudience: data.targetAudience || 'student',
+      calendarType: data.calendarType || 'gregorian',
+      questions: normalizedQuestions,
     };
   }
 
   // Load initial data for edit mode (or new)
   useEffect(() => {
     if (initialData) {
-      dispatch({ type: 'LOAD_INITIAL', payload: normalizeInitial(initialData) });
+      const normalized = normalizeInitial(initialData);
+      dispatch({ type: 'LOAD_INITIAL', payload: normalized });
     }
   }, [initialData]);
 
-  // Update completed steps based on form state
-  useEffect(() => {
-    const detailsCompleted = Object.values(state.name).some(v => typeof v === 'string' && v.trim());
-    if (detailsCompleted && !state.completedSteps.details) {
-      dispatch({ 
-        type: 'SET_CURRENT_STEP', 
-        payload: state.currentStep 
-      });
-    }
-  }, [state.name, state.completedSteps.details, state.currentStep]);
-
   // Form validation
-  const isStepValid = useCallback((step: Step): boolean => {
+  const validateStep = useCallback((step: Step): boolean => {
+    const nameValue = typeof state.name === 'string' ? state.name : (state.name as any)?.en || '';
     switch (step) {
       case 'details':
-        return Object.values(state.name).some(v => typeof v === 'string' && v.trim().length > 0);
+        return nameValue?.trim().length > 0;
       case 'questions':
         return true; // Can have zero questions
       case 'preview':
-        return Object.values(state.name).some(v => typeof v === 'string' && v.trim().length > 0);
+        return nameValue?.trim().length > 0;
       default:
         return false;
     }
@@ -64,7 +87,7 @@ export function useTemplateBuilder(initialData?: Partial<TemplateFormState>, isE
     const currentIndex = steps.indexOf(state.currentStep);
     
     if (currentIndex < steps.length - 1) {
-      if (state.currentStep === 'details' && !isStepValid('details')) {
+      if (state.currentStep === 'details' && !validateStep('details')) {
         toast({
           title: 'Incomplete Details',
           description: 'Please fill in the template name before proceeding.',
@@ -74,7 +97,7 @@ export function useTemplateBuilder(initialData?: Partial<TemplateFormState>, isE
       }
       dispatch({ type: 'SET_CURRENT_STEP', payload: steps[currentIndex + 1] });
     }
-  }, [state.currentStep, isStepValid, toast]);
+  }, [state.currentStep, validateStep, toast]);
 
   const goToPreviousStep = useCallback(() => {
     const steps: Step[] = ['details', 'questions', 'preview'];
@@ -104,15 +127,10 @@ export function useTemplateBuilder(initialData?: Partial<TemplateFormState>, isE
   // Save handler with validation
   const saveTemplate = useCallback(async () => {
     // Ensure all multilingual fields are objects
-    const toMultilingual = (val: any) => {
-      if (!val) return { en: '', am: '' };
-      if (typeof val === 'object') return val;
-      return { en: val, am: '' };
-    };
     const validation = validateTemplate({
-      name: toMultilingual(state.name),
-      intro: toMultilingual(state.intro),
-      why: toMultilingual(state.why),
+      name: state.name,
+      intro: state.intro,
+      why: state.why,
       calendarType: state.calendarType,
       academicYear: state.academicYear,
       semester: state.semester,
@@ -121,8 +139,8 @@ export function useTemplateBuilder(initialData?: Partial<TemplateFormState>, isE
 
     if (!validation.success) {
       let errorMsg = 'Please check your form data.';
-      if (validation.error && Array.isArray(validation.error.errors) && validation.error.errors.length > 0) {
-        errorMsg = validation.error.errors[0].message;
+      if (validation.error && Array.isArray(validation.error.issues) && validation.error.issues.length > 0) {
+        errorMsg = validation.error.issues[0].message;
       }
       toast({
         title: 'Validation Error',
@@ -139,14 +157,7 @@ export function useTemplateBuilder(initialData?: Partial<TemplateFormState>, isE
     dispatch({ type: 'SET_SAVING', payload: true });
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: initialData ? 'Template Updated' : 'Template Created',
-        description: `"${state.name.en || state.name.am}" has been saved successfully.`,
-      });
-      
+      // Return validated data for parent component to make API call
       return validation.data;
     } catch (error) {
       toast({
@@ -168,7 +179,7 @@ export function useTemplateBuilder(initialData?: Partial<TemplateFormState>, isE
       goToPreviousStep,
       addQuestion,
       saveTemplate,
-      isStepValid,
+      validateStep,
       canAddQuestion,
     },
   };

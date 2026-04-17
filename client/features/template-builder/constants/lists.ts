@@ -13,6 +13,5 @@ export const SEMESTERS = [
 ];
 
 export const CALENDAR_TYPES = [
-  { value: 'ethiopian', label: 'Ethiopian' },
   { value: 'gregorian', label: 'Gregorian' },
 ];

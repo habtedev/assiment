@@ -41,21 +41,15 @@ import {
   Search,
   Filter,
   Loader2,
-  Sparkles,
-  Heart,
-  Shield,
   Copy,
-  Download,
   Upload,
   CheckCircle2,
   AlertCircle,
   ArrowUpDown,
-  ChevronDown,
-  Grid3x3,
   List,
   LayoutGrid,
+  Heart,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8500";
 
@@ -260,11 +254,11 @@ export default function TemplatesPage() {
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case "active":
-        return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full">Active</Badge>;
+        return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-xs">Active</Badge>;
       case "draft":
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full">Draft</Badge>;
+        return <Badge variant="outline" className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-full text-xs border-indigo-200 dark:border-indigo-800">Draft</Badge>;
       case "archived":
-        return <Badge variant="outline" className="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 rounded-full">Archived</Badge>;
+        return <Badge variant="outline" className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 rounded-full text-xs border-gray-200 dark:border-gray-700">Archived</Badge>;
       default:
         return null;
     }
@@ -296,40 +290,34 @@ export default function TemplatesPage() {
 
   return (
     <AdminDashboardLayout>
-      <div className="p-4 sm:p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="rounded-full px-3 py-1 bg-gradient-to-r from-amber-50 to-rose-50 border-amber-200">
-                <Sparkles className="h-3 w-3 mr-1 text-amber-600" />
-                Template Management
-              </Badge>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-700 to-rose-700 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
               Assessment Templates
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Create, manage, and organize your evaluation templates
             </p>
           </div>
-          
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              className="rounded-full gap-2"
+              className="rounded-lg gap-2 h-8 cursor-pointer"
               onClick={() => router.push("/dashboard/admin/templates/import")}
             >
-              <Upload className="h-4 w-4" />
+              <Upload className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Import</span>
             </Button>
             <Button
               size="sm"
               onClick={() => router.push("/dashboard/admin/templates/new")}
-              className="rounded-full gap-2 bg-gradient-to-r from-amber-500 to-rose-500 text-white hover:from-amber-600 hover:to-rose-600"
+              className="rounded-lg gap-2 h-8 bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
             >
-              <PlusCircle className="h-4 w-4" />
+              <PlusCircle className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">New Template</span>
               <span className="sm:hidden">New</span>
             </Button>
@@ -337,70 +325,70 @@ export default function TemplatesPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-amber-500 to-rose-500 text-white">
-            <CardContent className="pt-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
+            <CardContent className="pt-4 pb-4 px-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90">Total</p>
-                  <p className="text-2xl font-bold">{templates.length}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">{templates.length}</p>
                 </div>
-                <FileText className="h-8 w-8 opacity-75" />
+                <FileText className="h-5 w-5 text-gray-400" />
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
-            <CardContent className="pt-6">
+          <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
+            <CardContent className="pt-4 pb-4 px-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90">Active</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">
                     {templates.filter(t => t.status === "active").length}
                   </p>
                 </div>
-                <CheckCircle2 className="h-8 w-8 opacity-75" />
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-amber-500 to-orange-500 text-white">
-            <CardContent className="pt-6">
+          <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
+            <CardContent className="pt-4 pb-4 px-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90">Draft</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Draft</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">
                     {templates.filter(t => t.status === "draft").length}
                   </p>
                 </div>
-                <Clock className="h-8 w-8 opacity-75" />
+                <Clock className="h-5 w-5 text-amber-500" />
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-            <CardContent className="pt-6">
+          <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
+            <CardContent className="pt-4 pb-4 px-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90">Responses</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Responses</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">
                     {templates.reduce((sum, t) => sum + (t.responseCount || 0), 0)}
                   </p>
                 </div>
-                <Heart className="h-8 w-8 opacity-75" />
+                <Heart className="h-5 w-5 text-purple-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters and Search */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+        <Card className="border-gray-200 dark:border-gray-800">
+          <CardContent className="pt-4 pb-4 px-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search templates..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 rounded-full"
+                  className="pl-9 rounded-lg h-9 border-gray-200 dark:border-gray-700 cursor-pointer"
                 />
               </div>
 
@@ -408,26 +396,26 @@ export default function TemplatesPage() {
                 {/* Status Filter */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="rounded-full gap-2">
+                    <Button variant="outline" size="sm" className="rounded-lg gap-2 h-9 border-gray-200 dark:border-gray-700 cursor-pointer">
                       <Filter className="h-4 w-4" />
-                      <span className="hidden sm:inline">
+                      <span className="hidden sm:inline text-xs">
                         {filterStatus === "all" ? "All Status" : filterStatus}
                       </span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                  <DropdownMenuContent align="end" className="w-36">
+                    <DropdownMenuLabel className="text-xs">Filter by Status</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setFilterStatus("all")}>
+                    <DropdownMenuItem onClick={() => setFilterStatus("all")} className="text-xs cursor-pointer">
                       All
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterStatus("active")}>
+                    <DropdownMenuItem onClick={() => setFilterStatus("active")} className="text-xs cursor-pointer">
                       Active
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterStatus("draft")}>
+                    <DropdownMenuItem onClick={() => setFilterStatus("draft")} className="text-xs cursor-pointer">
                       Draft
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterStatus("archived")}>
+                    <DropdownMenuItem onClick={() => setFilterStatus("archived")} className="text-xs cursor-pointer">
                       Archived
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -436,47 +424,47 @@ export default function TemplatesPage() {
                 {/* Sort Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="rounded-full gap-2">
+                    <Button variant="outline" size="sm" className="rounded-lg gap-2 h-9 border-gray-200 dark:border-gray-700 cursor-pointer">
                       <ArrowUpDown className="h-4 w-4" />
-                      <span className="hidden sm:inline">Sort</span>
+                      <span className="hidden sm:inline text-xs">Sort</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                  <DropdownMenuContent align="end" className="w-36">
+                    <DropdownMenuLabel className="text-xs">Sort by</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setSortBy("date")}>
+                    <DropdownMenuItem onClick={() => setSortBy("date")} className="text-xs cursor-pointer">
                       Date {sortBy === "date" && (sortOrder === "asc" ? "↑" : "↓")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy("title")}>
+                    <DropdownMenuItem onClick={() => setSortBy("title")} className="text-xs cursor-pointer">
                       Title {sortBy === "title" && (sortOrder === "asc" ? "↑" : "↓")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy("status")}>
+                    <DropdownMenuItem onClick={() => setSortBy("status")} className="text-xs cursor-pointer">
                       Status {sortBy === "status" && (sortOrder === "asc" ? "↑" : "↓")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}>
+                    <DropdownMenuItem onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")} className="text-xs cursor-pointer">
                       Toggle Order ({sortOrder === "asc" ? "Ascending" : "Descending"})
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
                 {/* View Mode Toggle */}
-                <div className="flex items-center border rounded-full p-1">
+                <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg p-0.5">
                   <Button
                     variant={viewMode === "grid" ? "secondary" : "ghost"}
                     size="icon"
-                    className="h-8 w-8 rounded-full"
+                    className="h-7 w-7 rounded-md"
                     onClick={() => setViewMode("grid")}
                   >
-                    <LayoutGrid className="h-4 w-4" />
+                    <LayoutGrid className="h-3.5 w-3.5" />
                   </Button>
                   <Button
                     variant={viewMode === "list" ? "secondary" : "ghost"}
                     size="icon"
-                    className="h-8 w-8 rounded-full"
+                    className="h-7 w-7 rounded-md"
                     onClick={() => setViewMode("list")}
                   >
-                    <List className="h-4 w-4" />
+                    <List className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
@@ -486,13 +474,13 @@ export default function TemplatesPage() {
 
         {/* Templates Grid/List */}
         {filteredTemplates.length === 0 ? (
-          <Card className="border-2 border-dashed">
-            <CardContent className="py-16 text-center">
-              <div className="h-20 w-20 mx-auto rounded-full bg-gradient-to-br from-amber-100 to-rose-100 dark:from-amber-900/30 dark:to-rose-900/30 flex items-center justify-center mb-4">
-                <FileText className="h-10 w-10 text-amber-600 dark:text-amber-400" />
+          <Card className="border border-dashed border-gray-300 dark:border-gray-700">
+            <CardContent className="py-12 text-center">
+              <div className="h-16 w-16 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
+                <FileText className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">No templates found</h3>
-              <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+              <h3 className="text-base font-semibold mb-1 text-gray-900 dark:text-white">No templates found</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 max-w-md mx-auto">
                 {searchTerm || filterStatus !== "all"
                   ? "Try adjusting your filters or search term"
                   : "Get started by creating your first assessment template"}
@@ -500,7 +488,7 @@ export default function TemplatesPage() {
               {!searchTerm && filterStatus === "all" && (
                 <Button
                   onClick={() => router.push("/dashboard/admin/templates/new")}
-                  className="bg-gradient-to-r from-amber-500 to-rose-500 text-white"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white h-9 cursor-pointer"
                 >
                   <PlusCircle className="h-4 w-4 mr-2" />
                   Create New Template
@@ -510,7 +498,7 @@ export default function TemplatesPage() {
           </Card>
         ) : viewMode === "grid" ? (
           // Grid View
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTemplates.map((template) => {
               const lang = i18n?.language || "en";
               const title = typeof template.title === 'object' ? template.title[lang] || template.title['en'] : template.title;
@@ -518,102 +506,88 @@ export default function TemplatesPage() {
               return (
                 <Card
                   key={template.id}
-                  className="group hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm"
-                  onClick={() => router.push(`/dashboard/admin/templates/${template.id}`)}
+                  className="group hover:shadow-lg transition-all cursor-pointer border border-gray-200 dark:border-gray-800 bg-white dark:bg-black"
+                  onClick={() => router.push(`/dashboard/admin/templates/${template.id}/preview`)}
                 >
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-2 pt-4 px-4">
                     <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-400 to-rose-500 flex items-center justify-center text-white">
-                          <FileText className="h-5 w-5" />
+                      <div className="flex items-start gap-2">
+                        <div className="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600">
+                          <FileText className="h-4 w-4" />
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <CardTitle className="text-base line-clamp-1">
-                              {title}
-                            </CardTitle>
-                          </div>
-                          <CardDescription className="line-clamp-2 text-xs">
+                          <CardTitle className="text-sm line-clamp-1 font-semibold">
+                            {title}
+                          </CardTitle>
+                          <CardDescription className="line-clamp-2 text-xs mt-0.5">
                             {description || "No description"}
                           </CardDescription>
                         </div>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg cursor-pointer">
+                            <MoreVertical className="h-3.5 w-3.5" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={(e) => {
                             e.stopPropagation();
                             router.push(`/dashboard/admin/templates/${template.id}/preview`);
-                          }}>
-                            <Eye className="h-4 w-4 mr-2" />
+                          }} className="text-xs cursor-pointer">
+                            <Eye className="h-3.5 w-3.5 mr-2" />
                             Preview
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={(e) => {
                             e.stopPropagation();
                             router.push(`/dashboard/admin/templates/${template.id}/edit`);
-                          }}>
-                            <Edit className="h-4 w-4 mr-2" />
+                          }} className="text-xs cursor-pointer">
+                            <Edit className="h-3.5 w-3.5 mr-2" />
                             Edit
                           </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-rose-600"
+                          className="text-red-600 text-xs cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedTemplate(template);
                             setDeleteDialogOpen(true);
                           }}
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          <Trash2 className="h-3.5 w-3.5 mr-2" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </CardHeader>
-                <CardContent className="pb-3">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span className="text-xs">
-                        {template.academicYear} • {template.semester}
-                      </span>
+                <CardContent className="pb-2 pt-0 px-4">
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                      <Calendar className="h-3 w-3" />
+                      <span>{template.academicYear} • {template.semester}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <User className="h-3.5 w-3.5" />
-                      <span className="text-xs">Created by: {template.createdById}</span>
+                    <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                      <User className="h-3 w-3" />
+                      <span>Created by: {template.createdById}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span className="text-xs">{formatDate(template.createdAt)}</span>
+                    <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                      <Clock className="h-3 w-3" />
+                      <span>{formatDate(template.createdAt)}</span>
                     </div>
-                    <div className="flex items-center gap-4 pt-2">
-                      <div className="flex items-center gap-1">
-                        <Badge variant="secondary" className="rounded-full text-xs">
-                          {template.questionCount} Q
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Badge variant="secondary" className="rounded-full text-xs">
-                          {template.responseCount} R
-                        </Badge>
-                      </div>
+                    <div className="flex items-center gap-3 pt-1">
+                      <Badge variant="secondary" className="rounded-full text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                        {template.questionCount} Q
+                      </Badge>
+                      <Badge variant="secondary" className="rounded-full text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                        {template.responseCount} R
+                      </Badge>
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="flex justify-between pt-3 border-t">
+                <CardFooter className="flex justify-between pt-2 border-t border-gray-100 dark:border-gray-800 px-4 pb-3">
                   <div className="flex items-center gap-2">
                     {getStatusBadge(template.status)}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-3 w-3 text-rose-500 fill-rose-500" />
-                    <span className="text-xs text-muted-foreground">
-                      {Math.floor(Math.random() * 100)}%
-                    </span>
                   </div>
                 </CardFooter>
               </Card>
@@ -622,80 +596,80 @@ export default function TemplatesPage() {
           </div>
         ) : (
           // List View
-          <Card>
+          <Card className="border border-gray-200 dark:border-gray-800">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-muted/50">
+                  <thead className="bg-gray-50 dark:bg-gray-900/50">
                     <tr>
-                      <th className="text-left p-4 text-sm font-medium">Title</th>
-                      <th className="text-left p-4 text-sm font-medium">Status</th>
-                      <th className="text-left p-4 text-sm font-medium">Questions</th>
-                      <th className="text-left p-4 text-sm font-medium">Responses</th>
-                      <th className="text-left p-4 text-sm font-medium">Created</th>
-                      <th className="text-right p-4 text-sm font-medium">Actions</th>
+                      <th className="text-left p-3 text-xs font-medium text-gray-600 dark:text-gray-400">Title</th>
+                      <th className="text-left p-3 text-xs font-medium text-gray-600 dark:text-gray-400">Status</th>
+                      <th className="text-left p-3 text-xs font-medium text-gray-600 dark:text-gray-400">Questions</th>
+                      <th className="text-left p-3 text-xs font-medium text-gray-600 dark:text-gray-400">Responses</th>
+                      <th className="text-left p-3 text-xs font-medium text-gray-600 dark:text-gray-400">Created</th>
+                      <th className="text-right p-3 text-xs font-medium text-gray-600 dark:text-gray-400">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredTemplates.map((template) => (
                       <tr
                         key={template.id}
-                        className="border-t hover:bg-muted/50 cursor-pointer transition-colors"
-                        onClick={() => router.push(`/dashboard/admin/templates/${template.id}`)}
+                        className="border-t border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/50 cursor-pointer transition-colors"
+                        onClick={() => router.push(`/dashboard/admin/templates/${template.id}/preview`)}
                       >
-                        <td className="p-4">
+                        <td className="p-3">
                           <div>
-                            <div className="font-medium">
+                            <div className="font-medium text-sm">
                               {typeof template.title === 'object' ? template.title['en'] || Object.values(template.title)[0] : template.title}
                             </div>
-                            <div className="text-xs text-muted-foreground line-clamp-1">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
                               {typeof template.description === 'object' ? template.description['en'] || Object.values(template.description)[0] : template.description}
                             </div>
                           </div>
                         </td>
-                        <td className="p-4">{getStatusBadge(template.status)}</td>
-                        <td className="p-4">{template.questionCount}</td>
-                        <td className="p-4">{template.responseCount}</td>
-                        <td className="p-4 text-sm">{formatDate(template.createdAt)}</td>
-                        <td className="p-4 text-right">
+                        <td className="p-3">{getStatusBadge(template.status)}</td>
+                        <td className="p-3 text-sm">{template.questionCount}</td>
+                        <td className="p-3 text-sm">{template.responseCount}</td>
+                        <td className="p-3 text-xs">{formatDate(template.createdAt)}</td>
+                        <td className="p-3 text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                                <MoreVertical className="h-4 w-4" />
+                              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg cursor-pointer">
+                                <MoreVertical className="h-3.5 w-3.5" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={(e) => {
                                 e.stopPropagation();
                                 router.push(`/dashboard/admin/templates/${template.id}/preview`);
-                              }}>
-                                <Eye className="h-4 w-4 mr-2" />
+                              }} className="text-xs cursor-pointer">
+                                <Eye className="h-3.5 w-3.5 mr-2" />
                                 Preview
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={(e) => {
                                 e.stopPropagation();
                                 router.push(`/dashboard/admin/templates/${template.id}/edit`);
-                              }}>
-                                <Edit className="h-4 w-4 mr-2" />
+                              }} className="text-xs cursor-pointer">
+                                <Edit className="h-3.5 w-3.5 mr-2" />
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={(e) => {
                                 e.stopPropagation();
                                 handleDuplicate(template);
-                              }}>
-                                <Copy className="h-4 w-4 mr-2" />
+                              }} className="text-xs cursor-pointer">
+                                <Copy className="h-3.5 w-3.5 mr-2" />
                                 Duplicate
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
-                                className="text-rose-600"
+                                className="text-red-600 text-xs cursor-pointer"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedTemplate(template);
                                   setDeleteDialogOpen(true);
                                 }}
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
+                                <Trash2 className="h-3.5 w-3.5 mr-2" />
                                 Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -746,7 +720,7 @@ export default function TemplatesPage() {
       {/* Edit Dialog */}
       {editMode && editTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-6 w-full max-w-md">
+          <div className="bg-white dark:bg-black rounded-xl shadow-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Edit Template</h2>
             <div className="mb-4">
               <label className="block mb-1 font-medium">Title</label>
