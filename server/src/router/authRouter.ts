@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, registerCollege, registerDepartment } from '../controller/authController';
+import { register, login, registerCollege, registerDepartment, getCurrentUser } from '../controller/authController';
 import { authenticateJWT, requireRole } from '../middleware/authMiddleware';
 
 const router = Router();
@@ -9,6 +9,9 @@ router.post('/register', register);
 
 // Login route
 router.post('/login', login);
+
+// Get current authenticated user
+router.get('/me', authenticateJWT, getCurrentUser);
 
 // Register college (only by president)
 router.post('/register-college', authenticateJWT, requireRole('PRESIDENT'), registerCollege);

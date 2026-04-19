@@ -110,9 +110,19 @@ export default function AddCollegeForm({
   const router = useRouter();
   const { toast } = useToast();
 
+  // Helper to safely get string value from potentially bilingual objects
+  const getStringValue = (value: any): string => {
+    if (typeof value === "string") return value;
+    if (value && typeof value === "object") return value.en || value.am || "";
+    return "";
+  };
+
   const [formData, setFormData] = useState<CollegeFormData>({
     ...initialFormData,
-    ...initialData,
+    ...(initialData ? {
+      ...initialData,
+      name: getStringValue(initialData.name),
+    } : {}),
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -127,7 +137,8 @@ export default function AddCollegeForm({
 
     // Step 1: Basic Info
     if (currentStep === 1) {
-      if (!formData.name?.trim()) {
+      const nameValue = getStringValue(formData.name);
+      if (!nameValue?.trim()) {
         newErrors["name"] = "College name is required";
       }
       if (!formData.code?.trim()) {
@@ -244,8 +255,8 @@ export default function AddCollegeForm({
       toast({
         title: isEdit ? "✅ College Updated" : "🎉 College Created",
         description: isEdit
-          ? `${formData.name} has been updated successfully.`
-          : `${formData.name} has been created successfully.`,
+          ? `${getStringValue(formData.name)} has been updated successfully.`
+          : `${getStringValue(formData.name)} has been created successfully.`,
       });
 
       if (onSuccess) {
@@ -650,7 +661,7 @@ export default function AddCollegeForm({
                               College Name
                             </p>
                             <p className="font-medium text-sm truncate">
-                              {formData.name || "Not set"}
+                              {getStringValue(formData.name) || "Not set"}
                             </p>
                           </div>
                           <div>

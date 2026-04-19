@@ -1,6 +1,9 @@
 // useSignIn.ts
 // Best practice: Separate authentication logic from UI
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8500";
 
 interface UseSignInReturn {
   loading: boolean;
@@ -11,6 +14,7 @@ interface UseSignInReturn {
 }
 
 export function useSignIn(): UseSignInReturn {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,13 +22,38 @@ export function useSignIn(): UseSignInReturn {
     setLoading(true);
     setError(null);
     try {
-      // TODO: Replace with real API call
-      await new Promise(res => setTimeout(res, 1000));
-      
-      // Backend handles token storage in cookies
-      // No need to store in localStorage
-      
-      // throw new Error('Invalid credentials'); // Example error
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Sign in failed');
+      }
+
+      // Store user data in localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userData', JSON.stringify(data.user));
+      }
+
+      // Redirect to dashboard based on user role
+      if (data.user.role?.name === 'ADMIN') {
+        router.push('/dashboard/admin');
+      } else if (data.user.role?.name === 'COLLEGE' || data.user.role?.name === 'COLLEGE_ADMIN') {
+        router.push('/dashboard/college');
+      } else if (data.user.role?.name === 'HEAD') {
+        router.push('/dashboard/head');
+      } else if (data.user.role?.name === 'TEACHER') {
+        router.push('/dashboard/teacher');
+      } else {
+        router.push('/dashboard/student');
+      }
     } catch (err: any) {
       setError(err.message || 'Sign in failed');
     } finally {

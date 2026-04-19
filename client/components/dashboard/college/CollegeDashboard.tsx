@@ -1,175 +1,145 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { BarChart3, Users, Building2, PlusCircle } from "lucide-react";
-import { CollegeHeader } from "./layouts/CollegeHeader";
+import {
+  Building2,
+  PlusCircle,
+  Users,
+  UserCheck,
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
-
-const analytics = [
-  { label: "Total Departments", value: 5, icon: Building2 },
-  { label: "Total Students", value: 200, icon: Users },
-  { label: "Assessments", value: 12, icon: BarChart3 },
-];
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8500";
 
 export default function CollegeDashboard() {
-  const [form, setForm] = useState({
-    departmentName: "",
-    name: "",
-    email: "",
-    password: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const router = useRouter();
+  const { toast } = useToast();
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  // Calculate analytics
+  const totalDepartments = departments.length;
+  const totalStudents = departments.reduce((sum, d) => sum + (d.students?.length || 0), 0);
+  const totalTeachers = departments.reduce((sum, d) => sum + (d.teachers?.length || 0), 0);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8500";
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const fetchDepartments = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/add-department`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const res = await fetch(`${API_BASE_URL}/api/departments`, {
         credentials: "include",
-        body: JSON.stringify(form),
       });
       const data = await res.json();
-      if (res.ok) {
-        setMessage("Department and head user added successfully.");
-        setForm({ departmentName: "", name: "", email: "", password: "" });
-      } else {
-        setMessage(data.error || "Failed to add department.");
-      }
-    } catch {
-      setMessage("Server error.");
+      setDepartments(Array.isArray(data) ? data : []);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load departments",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-muted/40">
-    <CollegeHeader />
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* Page Title */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight">College Dashboard</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage departments, students, and analytics
-            </p>
-          </div>
-          <Badge variant="outline" className="rounded-xl">
-            College Overview
-          </Badge>
+    <div className="w-full space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Manage your college departments
+          </p>
         </div>
-        {/* Analytics Cards */}
-        <div className="grid gap-6 md:grid-cols-3">
-          {analytics.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Card key={item.label} className="rounded-2xl shadow-sm hover:shadow-md transition">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {item.label}
-                  </CardTitle>
-                  <Icon className="h-5 w-5 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{item.value}</div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-        <Separator />
-        {/* Add Department Form (like admin add college) */}
-        <div className="grid md:grid-cols-2 gap-8">
-          <Card className="rounded-2xl shadow-sm">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <PlusCircle className="h-5 w-5" />
-                <CardTitle>Add New Department</CardTitle>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalDepartments}</p>
+                <p className="text-sm text-muted-foreground">Total Departments</p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <Label>Department Name</Label>
-                  <Input
-                    name="departmentName"
-                    value={form.departmentName}
-                    onChange={handleChange}
-                    placeholder="Department of Computer Science"
-                    required
-                  />
+              <Building2 className="h-8 w-8 text-indigo-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalStudents}</p>
+                <p className="text-sm text-muted-foreground">Total Students</p>
+              </div>
+              <Users className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalTeachers}</p>
+                <p className="text-sm text-muted-foreground">Total Teachers</p>
+              </div>
+              <UserCheck className="h-8 w-8 text-emerald-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {loading ? (
+        <div className="text-center text-muted-foreground">Loading...</div>
+      ) : departments.length === 0 ? (
+        <Card className="border">
+          <CardContent className="p-12 text-center">
+            <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No departments yet</h3>
+            <p className="text-muted-foreground mb-4">Get started by adding your first department</p>
+            <Button
+              onClick={() => router.push("/dashboard/college/departments/new")}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
+            >
+              <PlusCircle className="h-4 w-4 mr-2 " />
+              Add Department
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {departments.map((dept) => (
+            <Card key={dept.id} className="border hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => router.push(`/dashboard/college/departments/${dept.id}`)}
+            >
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                  {typeof dept.name === "string" ? dept.name : (dept.name?.en || dept.name?.am || "Unknown")}
+                </h3>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>{dept.students?.length || 0} Students</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="h-4 w-4" />
+                    <span>{dept.teachers?.length || 0} Teachers</span>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Head Name</Label>
-                  <Input
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    placeholder="Head's Name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Head Email</Label>
-                  <Input
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    placeholder="head@university.edu"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Head Password</Label>
-                  <Input
-                    type="password"
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="Secure password"
-                    required
-                  />
-                </div>
-                <Button type="submit" disabled={loading} className="w-full rounded-xl">
-                  {loading ? "Adding..." : "Create Department"}
-                </Button>
-                {message && (
-                  <p className="text-sm text-center text-muted-foreground">
-                    {message}
-                  </p>
-                )}
-              </form>
-            </CardContent>
-          </Card>
-          {/* Placeholder for Future Chart or Activity */}
-          <Card className="rounded-2xl shadow-sm flex items-center justify-center">
-            <CardContent className="text-center space-y-3">
-              <BarChart3 className="mx-auto h-10 w-10 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Analytics charts and recent activity will appear here.
-              </p>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </main>
+      )}
     </div>
   );
 }

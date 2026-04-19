@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import authRouter from './router/authRouter';
 import collegeRouter from './router/collegeRouter';
+import departmentRouter from './router/departmentRouter';
 import templateRouter from './router/templateRouter';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
@@ -22,6 +23,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/admin', collegeRouter);
 // Public college fetch route
 app.use('/api/colleges', collegeRouter);
+// Department routes
+app.use('/api/departments', departmentRouter);
 // Template CRUD routes
 app.use('/api/templates', templateRouter);
 

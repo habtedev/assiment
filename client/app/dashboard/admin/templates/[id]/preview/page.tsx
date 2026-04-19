@@ -480,14 +480,14 @@ export default function TemplatePreviewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black">
-      <div className="max-w-7xl mx-auto p-4 space-y-4 print:p-0 print:max-w-none">
+      <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 print:p-0 print:max-w-none">
         {/* Header with Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.back()}
-            className="gap-2 w-fit h-8 cursor-pointer"
+            className="gap-2 w-fit h-9 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Templates
@@ -497,7 +497,7 @@ export default function TemplatePreviewPage() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={handlePrint} className="rounded-lg h-8 w-8 cursor-pointer">
+                  <Button variant="outline" size="icon" onClick={handlePrint} className="rounded-lg h-9 w-9 cursor-pointer">
                     <Printer className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -508,7 +508,7 @@ export default function TemplatePreviewPage() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={handleShare} className="rounded-lg h-8 w-8 cursor-pointer">
+                  <Button variant="outline" size="icon" onClick={handleShare} className="rounded-lg h-9 w-9 cursor-pointer">
                     <Share2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -519,7 +519,7 @@ export default function TemplatePreviewPage() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={handleDownload} className="rounded-lg h-8 w-8 cursor-pointer">
+                  <Button variant="outline" size="icon" onClick={handleDownload} className="rounded-lg h-9 w-9 cursor-pointer">
                     <Download className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -528,27 +528,26 @@ export default function TemplatePreviewPage() {
             </TooltipProvider>
           </div>
         </div>
-
         {/* Combined Preview Card */}
-        <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-black overflow-hidden">
+        <Card className="w-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-black overflow-hidden shadow-lg">
           {/* Template Header */}
-          <CardContent className="p-4 sm:p-5 pb-4 border-b border-gray-100 dark:border-gray-800">
-            <h1 className="text-xl sm:text-2xl font-bold mb-1.5 text-gray-900 dark:text-white">
+          <CardContent className="p-4 sm:p-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 text-gray-900 dark:text-white">
               {template.name
                 ? getLocalizedText(template.name)
                 : getLocalizedText(undefined, template.title)}
             </h1>
-            <p className="mb-3 max-w-2xl text-sm text-gray-600 dark:text-gray-400">
+            <p className="mb-3 max-w-3xl text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
               {template.description && typeof template.description !== 'string'
                 ? getLocalizedText(template.description)
                 : getLocalizedText(undefined, typeof template.description === 'string' ? template.description : undefined)}
             </p>
-            <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
               {template.academicYear && (
-                <div>{template.academicYear}</div>
+                <Badge variant="outline" className="text-xs px-2 py-0.5">{template.academicYear}</Badge>
               )}
               {template.semester && (
-                <div>{template.semester}</div>
+                <Badge variant="outline" className="text-xs px-2 py-0.5">{template.semester}</Badge>
               )}
             </div>
           </CardContent>
@@ -556,17 +555,17 @@ export default function TemplatePreviewPage() {
           {/* Introduction and Purpose */}
           {((template.intro && typeof template.intro !== 'string' && getLocalizedText(template.intro) !== "No content available") ||
             (template.why && typeof template.why !== 'string' && getLocalizedText(template.why) !== "No content available")) && (
-            <CardContent className="p-4 pb-3 border-b border-gray-100 dark:border-gray-800 space-y-3">
+            <CardContent className="p-4 sm:p-6 pb-4 border-b border-gray-100 dark:border-gray-800 space-y-3">
               {template.intro && typeof template.intro !== 'string' && getLocalizedText(template.intro) !== "No content available" && (
                 <div>
-                  <p className="text-xs text-gray-700 dark:text-gray-300">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     <span className="font-semibold">Introduction:</span> {getLocalizedText(template.intro)}
                   </p>
                 </div>
               )}
               {template.why && typeof template.why !== 'string' && getLocalizedText(template.why) !== "No content available" && (
                 <div>
-                  <p className="text-xs text-gray-700 dark:text-gray-300">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     <span className="font-semibold">Purpose:</span> {getLocalizedText(template.why)}
                   </p>
                 </div>
@@ -575,27 +574,27 @@ export default function TemplatePreviewPage() {
           )}
 
           {/* View Controls */}
-          <CardContent className="p-4 pb-3">
+          <CardContent className="p-4 sm:p-6 pb-4">
             <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-3 mb-4">
+              <TabsList className="grid w-full max-w-2xl grid-cols-3 mb-4">
                 <TabsTrigger value="all" className="gap-2 text-xs">
                   <LayoutList className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">{currentLang === 'am' ? 'ሁሉም' : 'All'}</span>
-                  <Badge variant="secondary" className="ml-1 rounded-full px-1.5 text-xs">
+                  <Badge variant="secondary" className="ml-1 rounded-full px-1.5 py-0.5 text-[10px]">
                     {template.questions?.length || 0}
                   </Badge>
                 </TabsTrigger>
                 <TabsTrigger value="multiple" className="gap-2 text-xs">
                   <span>🔘</span>
                   <span className="hidden sm:inline">{currentLang === 'am' ? 'ባለብዙ ምርጫ' : 'Multiple'}</span>
-                  <Badge variant="secondary" className="ml-1 rounded-full px-1.5 text-xs">
+                  <Badge variant="secondary" className="ml-1 rounded-full px-1.5 py-0.5 text-[10px]">
                     {multipleChoiceCount}
                   </Badge>
                 </TabsTrigger>
                 <TabsTrigger value="paragraph" className="gap-2 text-xs">
                   <span>📝</span>
-                  <span className="hidden sm:inline">{currentLang === 'am' ? 'አንቀጽ' : 'Paragraph'}</span>
-                  <Badge variant="secondary" className="ml-1 rounded-full px-1.5 text-xs">
+                  <span className="hidden sm:inline">{currentLang === 'am' ? 'አግባብር' : 'Paragraph'}</span>
+                  <Badge variant="secondary" className="ml-1 rounded-full px-1.5 py-0.5 text-[10px]">
                     {paragraphCount}
                   </Badge>
                 </TabsTrigger>
@@ -612,7 +611,7 @@ export default function TemplatePreviewPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 sm:space-y-4">
                   {filteredQuestions.map((question, idx) => {
                     const globalIndex = filteredQuestions.indexOf(question);
                     if (question.type === "multiple") {
@@ -642,10 +641,9 @@ export default function TemplatePreviewPage() {
             </Tabs>
           </CardContent>
         </Card>
-
         {/* Footer */}
         <Card className="border-0 bg-gray-50 dark:bg-gray-900/50">
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-2 text-xs">
               <Heart className="h-3.5 w-3.5 text-gray-400" />
               <span className="text-gray-500 dark:text-gray-400">
@@ -660,25 +658,6 @@ export default function TemplatePreviewPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Print Styles */}
-        {/* <style jsx global>{`
-          @media print {
-            body {
-              background: white;
-              padding: 20px;
-            }
-            .print\\:hidden {
-              display: none !important;
-            }
-            .print\\:max-w-full {
-              max-width: 100% !important;
-            }
-            .print\\:p-0 {
-              padding: 0 !important;
-            }
-          }
-        `}</style> */}
       </div>
     </div>
   );

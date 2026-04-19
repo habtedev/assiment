@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../DB/prismaClient';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { AuthRequest } from '../middleware/authMiddleware';
 
 
 // Register a new college (only by president)
@@ -86,7 +87,14 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    const user = await prisma.user.findUnique({ where: { email }, include: { role: true } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        role: true,
+        college: true,
+        department: true,
+      },
+    });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
@@ -99,8 +107,40 @@ export const login = async (req: Request, res: Response) => {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: '/', // Send cookie to all routes
     });
-    res.json({ user });
+    // Return user data without password
+    const { password: userPassword, ...userWithoutPassword } = user;
+    res.json({ user: userWithoutPassword });
   } catch (error) {
     res.status(400).json({ error: 'Login failed', details: error });
+  }
+};
+
+// Get current authenticated user
+export const getCurrentUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        role: true,
+        college: true,
+        department: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Return user data without password
+    const { password: userPassword, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+  } catch (error) {
+    console.error('[GET CURRENT USER ERROR]', error);
+    res.status(500).json({ error: 'Failed to fetch user data' });
   }
 };

@@ -85,3 +85,34 @@ export function logout() {
     localStorage.removeItem('userData');
   }
 }
+
+export async function getCurrentUser() {
+  const token = getJwtToken();
+  if (!token) return null;
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8500";
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      // Store in localStorage for faster access
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userData', JSON.stringify(userData));
+      }
+      return userData;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching current user:', error);
+    return null;
+  }
+}

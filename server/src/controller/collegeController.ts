@@ -116,38 +116,61 @@ import bcrypt from 'bcrypt';
 // College adds a new department and department head user
 export const addDepartment = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, email, password, departmentName } = req.body;
+    const { departmentName, departmentCode, contactEmail, contactPhone, adminName, adminPassword, academicYear } = req.body;
+    console.log('[ADD DEPARTMENT] Request body:', req.body);
+    
     // Get collegeId from logged-in user
     const collegeId = req.user?.userId ? (await prisma.user.findUnique({ where: { id: req.user.userId } }))?.collegeId : null;
     if (!collegeId) return res.status(400).json({ error: 'College not found for user' });
+    
     // Ensure HEAD role exists
     let headRole = await prisma.role.findUnique({ where: { name: 'HEAD' } });
     if (!headRole) {
       headRole = await prisma.role.create({ data: { name: 'HEAD' } });
     }
+    
     // Create the department under the college
     const department = await prisma.department.create({
       data: {
         name: departmentName,
+        code: departmentCode,
+        email: contactEmail,
+        phone: contactPhone,
+        academicYear,
         collegeId,
       },
     });
+    
     // Create the department head user
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     const user = await prisma.user.create({
       data: {
-        email,
-        name,
+        email: contactEmail,
+        name: adminName,
         password: hashedPassword,
         roleId: headRole.id,
         departmentId: department.id,
         collegeId,
       },
     });
+    
     res.status(201).json({ message: 'Department and head user created', department, user });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[ADD DEPARTMENT ERROR]', error);
-    res.status(400).json({ error: 'Department creation failed', details: error instanceof Error ? error.message : error });
+
+    // Handle Prisma unique constraint errors
+    if (error.code === 'P2002') {
+      const field = error.meta?.target?.[0];
+      if (field === 'name') {
+        return res.status(400).json({ error: 'Department name already exists' });
+      }
+      if (field === 'code') {
+        return res.status(400).json({ error: 'Department code already exists' });
+      }
+      return res.status(400).json({ error: 'A department with this information already exists' });
+    }
+
+    res.status(400).json({ error: 'Department creation failed', details: error.message });
   }
 };
 

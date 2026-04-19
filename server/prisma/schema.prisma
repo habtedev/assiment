@@ -32,11 +32,15 @@ model Role {
 }
 
 model Department {
-    id        Int     @id @default(autoincrement())
-    name      String  @unique // e.g., 'Computer Science', 'IT', etc.
-    college   College @relation(fields: [collegeId], references: [id])
-    collegeId Int
-    users     User[]
+    id            Int     @id @default(autoincrement())
+    name          String  @unique // e.g., 'Computer Science', 'IT', etc.
+    code          String? @unique // Department code (optional for existing records)
+    email         String? // Contact email
+    phone         String? // Contact phone
+    academicYear  String? // Academic year
+    college       College @relation(fields: [collegeId], references: [id])
+    collegeId     Int
+    users         User[]
 }
 
 model College {
