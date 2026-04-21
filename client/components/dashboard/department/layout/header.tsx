@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   Menu,
   Search,
@@ -10,16 +9,11 @@ import {
   User,
   Settings,
   HelpCircle,
-  Sparkles,
   Maximize2,
   Minimize2,
   LogOut,
   Heart,
-  Shield,
-  GraduationCap,
   ChevronDown,
-  Moon,
-  Sun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "@/components/shared/header/ThemeToggle";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -51,17 +46,22 @@ interface AdminHeaderProps {
 export const StudentHeader: React.FC<AdminHeaderProps> = ({
   onMenuClick,
   isSidebarOpen,
-  userName = "Dr. Abebe Kebede",
-  userEmail = "abebe.kebede@uog.edu.et",
+  userName,
+  userEmail,
   userAvatar,
   notificationCount = 3,
 }) => {
   const [isOnline, setIsOnline] = useState(true);
   const pathname = usePathname();
   const { toast } = useToast();
+  const { user: currentUser } = useCurrentUser();
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Use real user data if available, otherwise fallback to props
+  const displayUserName = currentUser?.name || userName || "User";
+  const displayUserEmail = currentUser?.email || userEmail || "user@example.com";
+  const displayUserAvatar = currentUser?.avatar || userAvatar;
 
   // Handle scroll effect
   useEffect(() => {
@@ -92,16 +92,13 @@ export const StudentHeader: React.FC<AdminHeaderProps> = ({
   };
 
   return (
-    <motion.header
+    <header
       className={cn(
         "sticky top-0 z-30 w-full transition-all duration-300",
         isScrolled
-          ? "bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-amber-200/50 dark:border-amber-800/50 shadow-lg"
-          : "bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm border-b border-amber-200/30 dark:border-amber-800/30"
+          ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-lg"
+          : "bg-white/80 dark:bg-black/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800"
       )}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.3 }}
     >
       <div className="flex h-16 items-center gap-2 sm:gap-4 px-2 sm:px-6 w-full justify-between">
         {/* Menu Button - Mobile */}
@@ -143,16 +140,11 @@ export const StudentHeader: React.FC<AdminHeaderProps> = ({
 
         {/* Search Bar (hidden on mobile) */}
         <div className="hidden sm:block flex-1 max-w-md mx-auto">
-          <div className={cn(
-            "relative transition-all duration-300",
-            searchFocused && "scale-105"
-          )}>
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search templates, questions... (⌘K)"
               className="pl-9 pr-4 rounded-full bg-muted/50 border-0 focus-visible:ring-2 focus-visible:ring-amber-500"
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
             />
           </div>
         </div>
@@ -207,13 +199,11 @@ export const StudentHeader: React.FC<AdminHeaderProps> = ({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative rounded-full hover:bg-amber-100/50 dark:hover:bg-amber-900/30">
                 <Bell className="h-5 w-5" />
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
+                <span
                   className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-[9px] font-medium text-white flex items-center justify-center ring-2 ring-background"
                 >
                   {notificationCount}
-                </motion.span>
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80 rounded-xl">
@@ -251,13 +241,13 @@ export const StudentHeader: React.FC<AdminHeaderProps> = ({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 pl-1 pr-3 rounded-full hover:bg-amber-100/50 dark:hover:bg-amber-900/30 hidden sm:flex items-center gap-2">
                 <Avatar className="h-8 w-8 ring-2 ring-amber-500/30">
-                  <AvatarImage src={userAvatar} />
+                  <AvatarImage src={displayUserAvatar} />
                   <AvatarFallback className="bg-gradient-to-br from-amber-400 to-rose-500 text-white">
-                    {userName.split(" ").map(n => n[0]).join("")}
+                    {displayUserName.split(" ").map(n => n[0]).join("")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden lg:block text-left">
-                  <p className="text-sm font-medium">{userName}</p>
+                  <p className="text-sm font-medium">{displayUserName}</p>
                   <p className="text-xs text-muted-foreground">Administrator</p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground hidden lg:block" />
@@ -266,8 +256,8 @@ export const StudentHeader: React.FC<AdminHeaderProps> = ({
             <DropdownMenuContent align="end" className="w-56 rounded-xl">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
-                  <span className="font-medium">{userName}</span>
-                  <span className="text-xs text-muted-foreground">{userEmail}</span>
+                  <span className="font-medium">{displayUserName}</span>
+                  <span className="text-xs text-muted-foreground">{displayUserEmail}</span>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -292,14 +282,6 @@ export const StudentHeader: React.FC<AdminHeaderProps> = ({
           </DropdownMenu>
         </div>
       </div>
-
-      {/* Progress Bar - Like Login Page */}
-      <motion.div
-        className="h-0.5 bg-gradient-to-r from-amber-500 to-rose-500"
-        initial={{ width: "0%" }}
-        animate={{ width: "65%" }}
-        transition={{ duration: 1, delay: 0.5 }}
-      />
-    </motion.header>
+    </header>
   );
 };

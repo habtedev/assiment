@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   Building2,
   ArrowLeft,
@@ -15,10 +14,8 @@ import {
   LogOut,
   Menu,
   ChevronDown,
-  Sparkles,
   GraduationCap,
   Search,
-  Globe,
   BookMarked,
   BarChart3,
 } from "lucide-react";
@@ -46,11 +43,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { getJwtToken } from "@/lib/auth";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/shared/header/ThemeToggle";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface DepartmentHeaderProps {
   departmentName?: string;
   departmentCode?: string;
   collegeName?: string;
+  collegeCode?: string;
   showBackButton?: boolean;
   backUrl?: string;
   onBack?: () => void;
@@ -64,14 +63,15 @@ interface DepartmentHeaderProps {
 }
 
 export function DepartmentHeader({
-  departmentName = "Department of Computer Science",
-  departmentCode = "CS",
-  collegeName = "College of Informatics",
+  departmentName,
+  departmentCode,
+  collegeName,
+  collegeCode,
   showBackButton = false,
   backUrl,
   onBack,
-  userName = "Dr. Tadesse Hailu",
-  userEmail = "tadesse.hailu@uog.edu.et",
+  userName,
+  userEmail,
   userAvatar,
   notificationCount = 3,
   programCount = 5,
@@ -81,14 +81,22 @@ export function DepartmentHeader({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
+  const { user: currentUser } = useCurrentUser();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Use real user data if available, otherwise fallback to props
+  const displayUserName = currentUser?.name || userName || "User";
+  const displayUserEmail = currentUser?.email || userEmail || "user@example.com";
+  const displayUserAvatar = currentUser?.avatar || userAvatar;
+
+  // Use college data from user or props
+  const displayCollegeName = currentUser?.college?.name || collegeName || "College";
+  const displayCollegeCode = currentUser?.college?.code || "COL";
+
+  // For department data, we'll use props for now since department info might need separate fetching
+  const displayDepartmentName = departmentName || "Department";
+  const displayDepartmentCode = departmentCode || "DEPT";
 
   // Handle scroll effect
   useEffect(() => {
@@ -193,23 +201,14 @@ export function DepartmentHeader({
     },
   ];
 
-  if (!mounted) {
-    return (
-      <header className="sticky top-0 z-50 w-full h-16 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm border-b border-amber-200/50 animate-pulse" />
-    );
-  }
-
   return (
-    <motion.header
+    <header
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-300",
         isScrolled
-          ? "bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-b border-amber-200/50 dark:border-amber-800/50 shadow-lg"
-          : "bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm border-b border-amber-200/30 dark:border-amber-800/30"
+          ? "bg-white/95 dark:bg-black/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-lg"
+          : "bg-white/80 dark:bg-black/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800"
       )}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.3 }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-2">
@@ -230,11 +229,11 @@ export function DepartmentHeader({
                 <SheetHeader className="p-4 border-b">
                   <SheetTitle className="flex items-center gap-2">
                     <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center text-white font-bold text-sm">
-                      {departmentCode}
+                      {displayDepartmentCode}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold">{departmentName}</span>
-                      <span className="text-xs text-muted-foreground">{collegeName}</span>
+                      <span className="text-sm font-semibold">{displayDepartmentName}</span>
+                      <span className="text-xs text-muted-foreground">{typeof displayCollegeName === 'string' ? displayCollegeName : displayCollegeName?.en || displayCollegeName?.am || 'College'}</span>
                     </div>
                   </SheetTitle>
                 </SheetHeader>
@@ -306,17 +305,17 @@ export function DepartmentHeader({
 
             {/* Department Logo */}
             <div className="relative h-9 w-9 rounded-lg overflow-hidden bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0">
-              {departmentCode?.charAt(0) || "D"}
+              {displayDepartmentCode?.charAt(0) || "D"}
             </div>
-            
+
             {/* Department name - hidden on mobile */}
             <div className="hidden md:block">
               <h1 className="font-semibold text-sm whitespace-nowrap">
-                {departmentName}
+                {displayDepartmentName}
               </h1>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Building2 className="h-3 w-3" />
-                <span className="truncate max-w-[150px]">{collegeName}</span>
+                <span className="truncate max-w-[150px]">{typeof displayCollegeName === 'string' ? displayCollegeName : displayCollegeName?.en || displayCollegeName?.am || 'College'}</span>
               </p>
             </div>
           </div>
@@ -399,7 +398,7 @@ export function DepartmentHeader({
                 >
                   <Avatar className="h-7 w-7">
                     <AvatarFallback className="bg-gradient-to-br from-amber-400 to-rose-500 text-white text-[10px]">
-                      {userName.split(" ").map(n => n[0]).join("")}
+                      {displayUserName.split(" ").map(n => n[0]).join("")}
                     </AvatarFallback>
                   </Avatar>
                   <ChevronDown className="h-3 w-3 text-muted-foreground" />
@@ -408,8 +407,8 @@ export function DepartmentHeader({
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel className="text-xs">
                   <div className="flex flex-col">
-                    <span className="font-medium text-sm">{userName}</span>
-                    <span className="text-[10px] text-muted-foreground">{userEmail}</span>
+                    <span className="font-medium text-sm">{displayUserName}</span>
+                    <span className="text-[10px] text-muted-foreground">{displayUserEmail}</span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -440,7 +439,7 @@ export function DepartmentHeader({
             >
               <Avatar className="h-7 w-7">
                 <AvatarFallback className="bg-gradient-to-br from-amber-400 to-rose-500 text-white text-[10px]">
-                  {userName.split(" ").map(n => n[0]).join("")}
+                  {displayUserName.split(" ").map(n => n[0]).join("")}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -458,6 +457,6 @@ export function DepartmentHeader({
           </div>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }

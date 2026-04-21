@@ -32,15 +32,73 @@ model Role {
 }
 
 model Department {
-    id            Int     @id @default(autoincrement())
-    name          String  @unique // e.g., 'Computer Science', 'IT', etc.
-    code          String? @unique // Department code (optional for existing records)
-    email         String? // Contact email
-    phone         String? // Contact phone
-    academicYear  String? // Academic year
-    college       College @relation(fields: [collegeId], references: [id])
+    id            Int        @id @default(autoincrement())
+    name          String     @unique // e.g., 'Computer Science', 'IT', etc.
+    code          String?    @unique // Department code (optional for existing records)
+    email         String?    // Contact email
+    phone         String?    // Contact phone
+    academicYear  String?    // Academic year
+    college       College    @relation(fields: [collegeId], references: [id])
     collegeId     Int
     users         User[]
+    students      Student[]
+    teachers      Teacher[]
+    courses       Course[]
+}
+
+model Student {
+    id          Int          @id @default(autoincrement())
+    name        String
+    email       String       @unique
+    phone       String?
+    year        String       // e.g., "1st Year", "2nd Year", etc.
+    sections    String[]     // Array of sections
+    department  Department   @relation(fields: [departmentId], references: [id])
+    departmentId Int
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+}
+
+model Teacher {
+    id          Int          @id @default(autoincrement())
+    name        String
+    email       String       @unique
+    phone       String?
+    title       String?      // e.g., "Professor", "Lecturer", etc.
+    department  Department   @relation(fields: [departmentId], references: [id])
+    departmentId Int
+    enrollments Enrollment[]
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+}
+
+model Course {
+    id          Int          @id @default(autoincrement())
+    code        String       @unique
+    name        String
+    credits     Int
+    hours       Int?
+    instructor  String?
+    students    Int          @default(0)
+    status      String       @default("active") // "active" | "pending" | "inactive"
+    department  Department   @relation(fields: [departmentId], references: [id])
+    departmentId Int
+    enrollments Enrollment[]
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+}
+
+model Enrollment {
+    id          Int      @id @default(autoincrement())
+    year        String   // e.g., "1st Year", "2nd Year"
+    section     String   // e.g., "Section A", "Section B"
+    status      String   @default("active") // "active" | "pending" | "dropped"
+    course      Course   @relation(fields: [courseId], references: [id])
+    courseId    Int
+    teacher     Teacher  @relation(fields: [teacherId], references: [id])
+    teacherId   Int
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
 }
 
 model College {

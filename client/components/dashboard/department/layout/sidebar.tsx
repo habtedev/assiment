@@ -36,6 +36,8 @@ import {
   Maximize2,
   Minimize2,
   UserPlus,
+  BookOpen,
+  UserCheck,
 } from "lucide-react";
 
 import {
@@ -113,6 +115,18 @@ export const AdminSidebar: React.FC<SidebarProps> = ({
       href: "/dashboard/department/teachers",
       icon: GraduationCap,
       description: t('sidebar.teachersDesc', 'Manage teacher accounts'),
+    },
+    {
+      title: t('sidebar.courses', 'Courses'),
+      href: "/dashboard/department/courses",
+      icon: BookOpen,
+      description: t('sidebar.coursesDesc', 'Manage courses'),
+    },
+    {
+      title: t('sidebar.enrollments', 'Enrollments'),
+      href: "/dashboard/department/enrollments",
+      icon: UserCheck,
+      description: t('sidebar.enrollmentsDesc', 'Manage course enrollments'),
     },
     {
       title: t('sidebar.templates', 'Templates'),
@@ -229,37 +243,6 @@ export const AdminSidebar: React.FC<SidebarProps> = ({
           )}
         </div>
       </div>
-
-      {/* User Profile - Like Login Page Avatar Style */}
-      <div className={cn(
-        "p-4 border-b border-amber-200/50 dark:border-amber-800/50",
-        !isOpen && "text-center"
-      )}>
-        <div className={cn(
-          "flex items-center",
-          isOpen ? "gap-3" : "flex-col gap-2"
-        )}>
-          <div className="relative">
-            <Avatar className={cn(
-              "ring-2 ring-amber-500/30",
-              isOpen ? "h-12 w-12" : "h-10 w-10"
-            )}>
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback className="bg-linear-to-br from-amber-400 to-rose-500 text-white">
-                AK
-              </AvatarFallback>
-            </Avatar>
-            <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-background" />
-          </div>
-          {isOpen && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Dr. Abebe Kebede</p>
-              <p className="text-xs text-muted-foreground truncate">{t('roles.admin', 'Administrator')}</p>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-thin scrollbar-thumb-amber-200 dark:scrollbar-thumb-amber-800">
         <TooltipProvider delayDuration={0}>

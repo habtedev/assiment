@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Users, 
+import { Input } from "@/components/ui/input";
+import {
+  Users,
   UserPlus,
   GraduationCap,
   Search,
@@ -16,81 +18,44 @@ import {
   Mail,
   Phone,
   Award,
-  BookOpen
+  BookOpen,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Mock data for teachers
-const teachers = [
-  { 
-    id: 1, 
-    name: "Dr. Abebe Kebede", 
-    email: "abebe.k@uog.edu.et", 
-    phone: "+251911123456", 
-    department: "Computer Science",
-    courses: 4,
-    experience: "15 years",
-    status: "active" 
-  },
-  { 
-    id: 2, 
-    name: "Prof. Almaz Bekele", 
-    email: "almaz.b@uog.edu.et", 
-    phone: "+251911234567", 
-    department: "Mathematics",
-    courses: 3,
-    experience: "20 years",
-    status: "active" 
-  },
-  { 
-    id: 3, 
-    name: "Dr. Solomon Tesfaye", 
-    email: "solomon.t@uog.edu.et", 
-    phone: "+251911345678", 
-    department: "Physics",
-    courses: 5,
-    experience: "12 years",
-    status: "active" 
-  },
-  { 
-    id: 4, 
-    name: "Mrs. Tirunesh Dinku", 
-    email: "tirunesh.d@uog.edu.et", 
-    phone: "+251911456789", 
-    department: "Chemistry",
-    courses: 4,
-    experience: "10 years",
-    status: "pending" 
-  },
-  { 
-    id: 5, 
-    name: "Mr. Kifle Mekonnen", 
-    email: "kifle.m@uog.edu.et", 
-    phone: "+251911567890", 
-    department: "Biology",
-    courses: 3,
-    experience: "8 years",
-    status: "active" 
-  },
-  { 
-    id: 6, 
-    name: "Dr. Dawit Kebede", 
-    email: "dawit.k@uog.edu.et", 
-    phone: "+251911678901", 
-    department: "Statistics",
-    courses: 2,
-    experience: "5 years",
-    status: "inactive" 
-  },
-];
-
 export default function TeachersPage() {
+  const router = useRouter();
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Fetch teachers from API
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const token = localStorage.getItem('jwtToken');
+        const response = await fetch("http://localhost:8500/api/teachers", {
+          credentials: "include",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setTeachers(data);
+        }
+      } catch (error) {
+        console.error("Error fetching teachers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeachers();
+  }, []);
 
   const filteredTeachers = teachers.filter(teacher =>
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     teacher.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    teacher.department.toLowerCase().includes(searchTerm.toLowerCase())
+    teacher.department?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -101,42 +66,37 @@ export default function TeachersPage() {
           <h2 className="text-2xl font-bold">Teachers</h2>
           <p className="text-muted-foreground">Manage teacher accounts and assignments</p>
         </div>
-        <Button className="gap-2">
+        <Button
+          className="gap-2 cursor-pointer"
+          onClick={() => router.push("/dashboard/department/teachers/new")}
+        >
           <UserPlus className="h-4 w-4" />
           Add Teacher
         </Button>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{teachers.length}</div>
+            {loading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <div className="text-2xl font-bold">{teachers.length}</div>
+            )}
             <div className="text-sm text-muted-foreground">Total Teachers</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-emerald-600">
-              {teachers.filter(t => t.status === "active").length}
-            </div>
+            {loading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                {teachers.length}
+              </div>
+            )}
             <div className="text-sm text-muted-foreground">Active Teachers</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-blue-600">
-              {teachers.reduce((acc, t) => acc + t.courses, 0)}
-            </div>
-            <div className="text-sm text-muted-foreground">Total Courses</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-purple-600">
-              {teachers.filter(t => t.status === "pending").length}
-            </div>
-            <div className="text-sm text-muted-foreground">Pending</div>
           </CardContent>
         </Card>
       </div>
@@ -145,12 +105,12 @@ export default function TeachersPage() {
       <div className="flex gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
+          <Input
             type="text"
             placeholder="Search teachers by name, email, or department..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="pl-10 pr-4 focus:ring-gray-500"
           />
         </div>
         <Button variant="outline">
@@ -160,28 +120,27 @@ export default function TeachersPage() {
       </div>
 
       {/* Teachers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTeachers.map((teacher) => (
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredTeachers.map((teacher) => (
           <Card key={teacher.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold">
-                    {teacher.name.split(" ").map(n => n[0]).join("")}
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-rose-500 flex items-center justify-center text-white font-bold">
+                    {teacher.name.split(" ").map((n: string) => n[0]).join("")}
                   </div>
                   <div>
                     <CardTitle className="text-base">{teacher.name}</CardTitle>
-                    <Badge 
-                      variant="outline"
-                      className={cn(
-                        "mt-1",
-                        teacher.status === "active" ? "border-emerald-200 text-emerald-700" :
-                        teacher.status === "pending" ? "border-amber-200 text-amber-700" :
-                        "border-slate-200 text-slate-700"
-                      )}
-                    >
-                      {teacher.status}
-                    </Badge>
+                    {teacher.title && (
+                      <Badge variant="secondary" className="mt-1 text-xs">
+                        {teacher.title}
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <Button variant="ghost" size="icon">
@@ -197,36 +156,22 @@ export default function TeachersPage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{teacher.phone}</span>
+                  <span className="text-muted-foreground">{teacher.phone || 'N/A'}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <Award className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Dept</span>
                   </div>
-                  <span className="font-semibold">{teacher.department}</span>
+                  <span className="font-semibold text-xs">{teacher.department?.name || 'N/A'}</span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Courses</span>
-                  </div>
-                  <span className="font-semibold">{teacher.courses}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Experience</span>
-                  </div>
-                  <span className="font-semibold">{teacher.experience}</span>
-                </div>
-                
+
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1 gap-2">
+                  <Button variant="outline" size="sm" className="flex-1 gap-2 cursor-pointer">
                     <Edit className="h-3 w-3" />
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1 gap-2 text-rose-600 hover:text-rose-700">
+                  <Button variant="outline" size="sm" className="flex-1 gap-2 text-rose-600 hover:text-rose-700 cursor-pointer">
                     <Trash2 className="h-3 w-3" />
                     Delete
                   </Button>
@@ -235,9 +180,10 @@ export default function TeachersPage() {
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
 
-      {filteredTeachers.length === 0 && (
+      {filteredTeachers.length === 0 && !loading && (
         <Card>
           <CardContent className="py-12 text-center">
             <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

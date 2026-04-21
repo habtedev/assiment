@@ -125,7 +125,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 dark:from-black dark:via-black dark:to-black flex items-center justify-center">
         <div className="w-full max-w-3xl mx-auto px-4">
           <div className="flex flex-col gap-6 items-center">
             <img
@@ -147,7 +147,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="relative min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 dark:from-black dark:via-black dark:to-black">
       {/* Enhanced Background Effects */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {/* Animated gradient orbs */}
@@ -195,7 +195,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
         variant="ghost"
         size="icon"
         onClick={toggleFullscreen}
-        className="fixed bottom-4 right-4 z-[60] rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-amber-200/50 dark:border-amber-800/50 shadow-lg hover:shadow-xl transition-all hidden lg:flex"
+        className="fixed bottom-4 right-4 z-[60] rounded-full bg-white/80 dark:bg-black/80 backdrop-blur-sm border border-amber-200/50 dark:border-gray-800 shadow-lg hover:shadow-xl transition-all hidden lg:flex"
       >
         {isFullscreen ? (
           <Minimize2 className="h-4 w-4" />
@@ -270,7 +270,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-rose-500/10 dark:from-amber-500/5 dark:to-rose-500/5 border border-amber-200/50 dark:border-amber-800/50 backdrop-blur-sm"
+                className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-rose-500/10 dark:from-amber-500/5 dark:to-rose-500/5 border border-amber-200/50 dark:border-gray-800 backdrop-blur-sm"
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">
@@ -313,7 +313,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
 
           {/* Enhanced Footer */}
           <footer className={cn(
-            "border-t border-amber-200/50 dark:border-amber-800/50 bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm py-3 px-4 md:px-6 transition-all",
+            "border-t border-amber-200/50 dark:border-gray-800 bg-white/50 dark:bg-black/50 backdrop-blur-sm py-3 px-4 md:px-6 transition-all",
             isScrolled && "shadow-lg"
           )}>
             <div className="flex flex-col md:flex-row items-center justify-between text-xs text-muted-foreground gap-3">

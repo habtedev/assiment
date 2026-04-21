@@ -20,5 +20,10 @@
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "prisma.config.ts"
+  ]
 }

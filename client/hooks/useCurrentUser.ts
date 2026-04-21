@@ -17,6 +17,12 @@ interface User {
     } | string;
     code?: string;
   };
+  departmentId?: number;
+  department?: {
+    id: number;
+    name: string;
+    code?: string;
+  };
   avatar?: string;
 }
 
