@@ -87,7 +87,9 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    const user = await prisma.user.findUnique({
+
+    // First try to find user in User table
+    let user = await prisma.user.findUnique({
       where: { email },
       include: {
         role: true,
@@ -95,21 +97,114 @@ export const login = async (req: Request, res: Response) => {
         department: true,
       },
     });
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
-    const token = jwt.sign({ userId: user.id, role: user.role.name }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
-    // Set JWT cookie with best practices
-    res.cookie('token', token, {
-      httpOnly: true, // Prevent JS access
-      secure: process.env.NODE_ENV === 'production', // Only HTTPS in production
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Strict in prod, lax in dev
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: '/', // Send cookie to all routes
-    });
-    // Return user data without password
-    const { password: userPassword, ...userWithoutPassword } = user;
-    res.json({ user: userWithoutPassword });
+
+    // If not found in User table, check Student table
+    if (!user) {
+      const student = await prisma.student.findUnique({
+        where: { email },
+        include: {
+          department: {
+            include: {
+              college: true,
+            },
+          },
+        },
+      });
+
+      if (student && student.password) {
+        const valid = await bcrypt.compare(password, student.password);
+        if (valid) {
+          // Create a user-like object for student
+          const studentUser = {
+            id: student.id,
+            email: student.email,
+            name: student.name,
+            role: { name: student.role || 'STUDENT' },
+            college: student.department?.college || null,
+            department: student.department,
+            isStudent: true,
+          };
+          const token = jwt.sign(
+            { userId: student.id, role: student.role || 'STUDENT', isStudent: true },
+            process.env.JWT_SECRET || 'secret',
+            { expiresIn: '1d' }
+          );
+          res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            maxAge: 24 * 60 * 60 * 1000,
+            path: '/',
+          });
+          return res.json({ user: studentUser });
+        }
+      }
+    }
+
+    // If not found in Student table, check Teacher table
+    if (!user) {
+      const teacher = await prisma.teacher.findUnique({
+        where: { email },
+        include: {
+          department: {
+            include: {
+              college: true,
+            },
+          },
+        },
+      });
+
+      if (teacher && teacher.password) {
+        const valid = await bcrypt.compare(password, teacher.password);
+        if (valid) {
+          // Create a user-like object for teacher
+          const teacherUser = {
+            id: teacher.id,
+            email: teacher.email,
+            name: teacher.name,
+            role: { name: teacher.role || 'TEACHER' },
+            college: teacher.department?.college || null,
+            department: teacher.department,
+            isTeacher: true,
+          };
+          const token = jwt.sign(
+            { userId: teacher.id, role: teacher.role || 'TEACHER', isTeacher: true },
+            process.env.JWT_SECRET || 'secret',
+            { expiresIn: '1d' }
+          );
+          res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            maxAge: 24 * 60 * 60 * 1000,
+            path: '/',
+          });
+          return res.json({ user: teacherUser });
+        }
+      }
+    }
+
+    // If user found in User table, authenticate normally
+    if (user) {
+      const valid = await bcrypt.compare(password, user.password);
+      if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+      const token = jwt.sign(
+        { userId: user.id, role: user.role.name },
+        process.env.JWT_SECRET || 'secret',
+        { expiresIn: '1d' }
+      );
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+        path: '/',
+      });
+      const { password: userPassword, ...userWithoutPassword } = user;
+      return res.json({ user: userWithoutPassword });
+    }
+
+    return res.status(401).json({ error: 'Invalid credentials' });
   } catch (error) {
     res.status(400).json({ error: 'Login failed', details: error });
   }

@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { logout } from "@/lib/auth";
 import { getJwtToken } from "@/lib/auth";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/shared/header/ThemeToggle";
@@ -111,7 +112,8 @@ export function DepartmentHeader({
     try {
       const token = getJwtToken();
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8500";
-      
+
+      // Call logout API
       await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
@@ -120,18 +122,27 @@ export function DepartmentHeader({
         },
       });
 
+      // Clear local storage and cookies
+      logout();
+
       toast({
         title: "👋 See you soon!",
         description: "You have been successfully logged out.",
       });
 
-      router.push("/");
+      // Use window.location for reliable redirect
+      window.location.href = "/";
     } catch (error) {
+      // Still clear local data even if API call fails
+      logout();
+
       toast({
-        title: "❌ Error",
-        description: "Failed to logout",
-        variant: "destructive",
+        title: "👋 See you soon!",
+        description: "You have been logged out.",
       });
+
+      // Use window.location for reliable redirect
+      window.location.href = "/";
     }
   };
 

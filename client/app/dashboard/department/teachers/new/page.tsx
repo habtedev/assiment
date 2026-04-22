@@ -21,7 +21,17 @@ const teacherSchema = z.object({
   name: z.string().min(2, "Full name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().optional(),
+  password: z.string().min(6, "Password must be at least 6 characters").optional(),
+  confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters").optional(),
   title: z.string().optional(),
+}).refine((data) => {
+  if (data.password && data.confirmPassword) {
+    return data.password === data.confirmPassword;
+  }
+  return true;
+}, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 type TeacherFormData = z.infer<typeof teacherSchema>;
@@ -42,6 +52,8 @@ export default function AddTeacherPage() {
       name: "",
       email: "",
       phone: "",
+      password: "",
+      confirmPassword: "",
       title: undefined,
     },
   });
@@ -111,7 +123,7 @@ export default function AddTeacherPage() {
         </div>
 
         {/* Main Form Card */}
-        <Card className="max-w-3xl mx-auto">
+        <Card className="max-w-6xl mx-auto">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-xl">
               <UserPlus className="h-6 w-6 text-primary" />
@@ -144,7 +156,7 @@ export default function AddTeacherPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="teacher@uog.edu.et"
+                  placeholder="teacher@example.com"
                   {...register("email")}
                   className={errors.email ? "border-destructive" : ""}
                 />
@@ -162,6 +174,36 @@ export default function AddTeacherPage() {
                   placeholder="+251xxxxxxxxx"
                   {...register("phone")}
                 />
+              </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter password (optional)"
+                  {...register("password")}
+                  className={errors.password ? "border-destructive" : ""}
+                />
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password.message}</p>
+                )}
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Confirm password (optional)"
+                  {...register("confirmPassword")}
+                  className={errors.confirmPassword ? "border-destructive" : ""}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+                )}
               </div>
 
               {/* Title */}

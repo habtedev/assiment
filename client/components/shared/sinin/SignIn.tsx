@@ -77,8 +77,6 @@ export default function SignIn({
       errors.email = { message: 'Email is required' };
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
       errors.email = { message: 'Invalid email format' };
-    } else if (!/^[a-zA-Z0-9._%+-]+@uog\.edu\.et$/.test(values.email)) {
-      errors.email = { message: 'Must use a university email (@uog.edu.et)' };
     }
     
     // Password validation (only for sign in)

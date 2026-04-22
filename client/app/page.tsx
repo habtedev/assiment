@@ -233,15 +233,6 @@ export default function SignInPage() {
   }, [toast, router]);
 
   const handleResetPassword = useCallback(async (email: string) => {
-    if (!email.endsWith("@uog.edu.et")) {
-      toast({
-        title: "Invalid Email",
-        description: "Please use your university email address (@uog.edu.et).",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {

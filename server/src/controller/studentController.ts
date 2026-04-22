@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../DB/prismaClient';
+import bcrypt from 'bcrypt';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -8,10 +9,10 @@ interface AuthRequest extends Request {
 // Create a new student
 export const createStudent = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, email, phone, year, sections } = req.body;
+    const { name, email, phone, password, year, sections } = req.body;
     const userId = req.user?.userId;
 
-    console.log('[CREATE STUDENT] Request body:', { name, email, phone, year, sections, userId });
+    console.log('[CREATE STUDENT] Request body:', { name, email, phone, password, year, sections, userId });
 
     if (!name || !email || !year || !sections || !userId) {
       console.log('[CREATE STUDENT] Missing required fields');
@@ -29,11 +30,19 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: 'User must be assigned to a department' });
     }
 
+    // Hash password if provided
+    let hashedPassword = null;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
     const student = await prisma.student.create({
       data: {
         name,
         email,
         phone: phone || null,
+        password: hashedPassword,
+        role: 'STUDENT',
         year,
         sections,
         departmentId: user.department.id,

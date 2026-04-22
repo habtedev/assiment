@@ -42,6 +42,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { getJwtToken } from "@/lib/auth";
+import { logout } from "@/lib/auth";
 import { ThemeToggle } from "@/components/shared/header/ThemeToggle";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCollege } from "@/hooks/useCollege";
@@ -101,24 +102,34 @@ export function CollegeHeader({
       const token = getJwtToken();
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8500";
 
+      // Call logout API
       await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
+      // Clear local storage and cookies
+      logout();
+
       toast({
         title: "👋 Logged out successfully",
         description: "See you next time!",
       });
 
-      router.push("/");
+      // Use window.location for reliable redirect
+      window.location.href = "/";
     } catch (error) {
+      // Still clear local data even if API call fails
+      logout();
+
       toast({
-        title: "Logout failed",
-        description: "Please try again.",
-        variant: "destructive",
+        title: "👋 Logged out successfully",
+        description: "See you next time!",
       });
+
+      // Use window.location for reliable redirect
+      window.location.href = "/";
     }
   };
 
