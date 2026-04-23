@@ -102,7 +102,9 @@ export default function AddStudentPage() {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to create student");
+          const errorData = await response.json();
+          console.error("Backend error:", errorData);
+          throw new Error(errorData.error || errorData.details || "Failed to create student");
         }
 
         toast({
@@ -116,7 +118,7 @@ export default function AddStudentPage() {
         console.error("Error adding student:", error);
         toast({
           title: "Error",
-          description: "Failed to add student. Please try again.",
+          description: error instanceof Error ? error.message : "Failed to add student. Please try again.",
           variant: "destructive",
         });
       }

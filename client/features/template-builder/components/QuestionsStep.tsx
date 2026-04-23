@@ -88,7 +88,7 @@ export function QuestionsStep({ state, dispatch, onAddQuestion, canAddQuestion }
               <Input
                 type="number"
                 min="1"
-                max="10"
+                max="5"
                 value={currentQuestion.weight}
                 onChange={(e) => dispatch({ type: 'SET_QUESTION_WEIGHT', payload: parseInt(e.target.value) || 1 })}
                 className="border-indigo-200 focus-visible:ring-indigo-500 h-9 text-sm cursor-pointer"

@@ -14,6 +14,7 @@ router.post("/", authenticateJWT, createTemplate);
 router.get("/", authenticateJWT, getTemplates);
 router.get("/:id", authenticateJWT, getTemplateById);
 router.put("/:id", authenticateJWT, updateTemplate);
+router.patch("/:id", authenticateJWT, updateTemplate);
 router.delete("/:id", authenticateJWT, deleteTemplate);
 
 export default router;

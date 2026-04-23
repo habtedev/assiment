@@ -4,6 +4,7 @@ import authRouter from './router/authRouter';
 import collegeRouter from './router/collegeRouter';
 import departmentRouter from './router/departmentRouter';
 import templateRouter from './router/templateRouter';
+import responseRouter from './router/responseRouter';
 import studentRouter from './router/studentRouter';
 import teacherRouter from './router/teacherRouter';
 import courseRouter from './router/courseRouter';
@@ -31,6 +32,8 @@ app.use('/api/colleges', collegeRouter);
 app.use('/api/departments', departmentRouter);
 // Template CRUD routes
 app.use('/api/templates', templateRouter);
+// Response CRUD routes
+app.use('/api/responses', responseRouter);
 // Student CRUD routes
 app.use('/api/students', studentRouter);
 // Teacher CRUD routes

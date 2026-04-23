@@ -14,37 +14,28 @@ export const createTemplate = async (req: any, res: Response) => {
       academicYear,
       semester,
       targetAudience,
-      isDraft
+      isDraft,
+      status
     } = req.body;
     const createdById = req.user?.userId;
     if (!createdById) return res.status(401).json({ error: "Unauthorized" });
 
-    // Ensure all fields are objects with language keys
-    const toMultilingual = (val: any) => {
-      if (!val) return { en: "", am: "" };
-      if (typeof val === "object") return val;
-      return { en: val, am: "" };
-    };
-
-    const title = toMultilingual(name); // Map 'name' to 'title'
-    const introData = toMultilingual(intro);
-    const whyData = toMultilingual(why);
-    const descriptionData = toMultilingual(description);
     const content = { questions }; // Wrap questions in content object
 
     try {
       const template = await prisma.template.create({
         data: {
-          title,
-          description: descriptionData,
-          intro: introData,
-          why: whyData,
+          title: name || "",
+          description: description || "",
+          intro: intro || "",
+          why: why || "",
           content,
           calendarType: calendarType || "ethiopian",
           academicYear: academicYear || "",
           semester: semester || "",
           targetAudience: targetAudience || "student",
           isDraft: isDraft || false,
+          status: status || "inactive",
           createdById,
         },
       });
@@ -71,10 +62,14 @@ export const getTemplates = async (req: Request, res: Response) => {
 export const getTemplateById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    console.log('Fetching template by ID:', id);
     const template = await prisma.template.findUnique({ where: { id: Number(id) } });
     if (!template) return res.status(404).json({ error: "Template not found" });
+    console.log('Template found:', template);
+    console.log('Template content:', template.content);
     res.json(template);
   } catch (error) {
+    console.error('Error fetching template by ID:', error);
     res.status(500).json({ error: "Failed to fetch template", details: error });
   }
 };
@@ -92,39 +87,64 @@ export const updateTemplate = async (req: Request, res: Response) => {
       academicYear,
       semester,
       targetAudience,
-      isDraft
+      isDraft,
+      deadline,
+      status
     } = req.body;
 
-    // Ensure all fields are objects with language keys
-    const toMultilingual = (val: any) => {
-      if (!val) return { en: "", am: "" };
-      if (typeof val === "object") return val;
-      return { en: val, am: "" };
-    };
+    console.log('Update Template Request Body:', req.body);
+    console.log('Status received:', status);
 
-    const title = toMultilingual(name); // Map 'name' to 'title'
-    const introData = toMultilingual(intro);
-    const whyData = toMultilingual(why);
-    const descriptionData = toMultilingual(description);
-    const content = { questions }; // Wrap questions in content object
+    const updateData: any = {};
+
+    // Only update fields that are explicitly provided
+    if (name !== undefined) {
+      updateData.title = name;
+    }
+    if (description !== undefined) {
+      updateData.description = description;
+    }
+    if (intro !== undefined) {
+      updateData.intro = intro;
+    }
+    if (why !== undefined) {
+      updateData.why = why;
+    }
+    if (questions !== undefined) {
+      updateData.content = { questions };
+    }
+    if (calendarType !== undefined) {
+      updateData.calendarType = calendarType;
+    }
+    if (academicYear !== undefined) {
+      updateData.academicYear = academicYear;
+    }
+    if (semester !== undefined) {
+      updateData.semester = semester;
+    }
+    if (targetAudience !== undefined) {
+      updateData.targetAudience = targetAudience;
+    }
+    if (isDraft !== undefined) {
+      updateData.isDraft = isDraft;
+    }
+    if (deadline !== undefined) {
+      updateData.deadline = deadline;
+    }
+    if (status !== undefined) {
+      updateData.status = status;
+    }
+
+    console.log('Update Data:', updateData);
 
     const template = await prisma.template.update({
       where: { id: Number(id) },
-      data: {
-        title,
-        description: descriptionData,
-        intro: introData,
-        why: whyData,
-        content,
-        calendarType: calendarType || "ethiopian",
-        academicYear: academicYear || "",
-        semester: semester || "",
-        targetAudience: targetAudience || "student",
-        isDraft: isDraft || false,
-      },
+      data: updateData,
     });
+    console.log('Updated Template:', template);
     res.json(template);
   } catch (error) {
+    console.error('Error updating template:', error);
     res.status(500).json({ error: "Failed to update template", details: error });
   }
 };

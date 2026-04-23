@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
+  const [filteredTeachers, setFilteredTeachers] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [sections, setSections] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,7 @@ export default function EnrollmentsPage() {
   const [formData, setFormData] = useState({
     year: "",
     section: "",
+    teacherId: "",
   });
 
   const [courseTeacherPairs, setCourseTeacherPairs] = useState<Array<{ courseId: string; teacherId: string }>>([]);
@@ -101,6 +103,31 @@ export default function EnrollmentsPage() {
     fetchSections();
   }, [formData.year]);
 
+  // Fetch teachers when year and section are selected
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      if (formData.year && formData.section) {
+        try {
+          const token = localStorage.getItem('jwtToken');
+          const response = await fetch(`http://localhost:8500/api/students/teachers/all`, {
+            credentials: "include",
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setFilteredTeachers(data);
+          }
+        } catch (error) {
+          console.error("Error fetching teachers:", error);
+        }
+      } else {
+        setFilteredTeachers([]);
+      }
+    };
+
+    fetchTeachers();
+  }, [formData.year, formData.section]);
+
   const filteredEnrollments = enrollments.filter(enrollment => {
     const matchesSearch =
       enrollment.course?.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,7 +148,15 @@ export default function EnrollmentsPage() {
     try {
       const token = localStorage.getItem('jwtToken');
 
-      // Create enrollments for each course/teacher pair
+      // Use the teacherId from main form if selected, otherwise use from course-teacher pairs
+      const teacherId = formData.teacherId || courseTeacherPairs[0]?.teacherId;
+
+      if (!teacherId) {
+        console.error("No teacher selected");
+        return;
+      }
+
+      // Create enrollments for each course
       const enrollmentPromises = courseTeacherPairs.map(pair =>
         fetch("http://localhost:8500/api/enrollments", {
           method: "POST",
@@ -132,7 +167,7 @@ export default function EnrollmentsPage() {
           credentials: "include",
           body: JSON.stringify({
             courseId: pair.courseId,
-            teacherId: pair.teacherId,
+            teacherId: teacherId,
             year: formData.year,
             section: formData.section,
           }),
@@ -150,7 +185,7 @@ export default function EnrollmentsPage() {
         if (enrollmentsRes.ok) setEnrollments(await enrollmentsRes.json());
 
         setShowAddForm(false);
-        setFormData({ year: "", section: "" });
+        setFormData({ year: "", section: "", teacherId: "" });
         setCourseTeacherPairs([]);
       }
     } catch (error) {
@@ -171,6 +206,17 @@ export default function EnrollmentsPage() {
     updated[index][field] = value;
     setCourseTeacherPairs(updated);
   };
+
+  // Auto-fill teacher in course-teacher pairs when teacher is selected in main form
+  useEffect(() => {
+    if (formData.teacherId && courseTeacherPairs.length > 0) {
+      const updated = courseTeacherPairs.map(pair => ({
+        ...pair,
+        teacherId: formData.teacherId,
+      }));
+      setCourseTeacherPairs(updated);
+    }
+  }, [formData.teacherId]);
 
   const getTeacherDisplayName = (teacher: any) => {
     if (teacher.title) {
@@ -261,10 +307,10 @@ export default function EnrollmentsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="year">Year</Label>
-                  <Select value={formData.year} onValueChange={(value) => setFormData({ ...formData, year: value, section: "" })}>
+                  <Select value={formData.year} onValueChange={(value) => setFormData({ ...formData, year: value, section: "", teacherId: "" })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
@@ -278,7 +324,7 @@ export default function EnrollmentsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="section">Section</Label>
-                  <Select value={formData.section} onValueChange={(value) => setFormData({ ...formData, section: value })} disabled={!formData.year}>
+                  <Select value={formData.section} onValueChange={(value) => setFormData({ ...formData, section: value, teacherId: "" })} disabled={!formData.year}>
                     <SelectTrigger>
                       <SelectValue placeholder={formData.year ? "Select section" : "Select year first"} />
                     </SelectTrigger>
@@ -289,11 +335,25 @@ export default function EnrollmentsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="teacher">Teacher</Label>
+                  <Select value={formData.teacherId} onValueChange={(value) => setFormData({ ...formData, teacherId: value })} disabled={!formData.year || !formData.section}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={formData.year && formData.section ? "Select teacher" : "Select year and section first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredTeachers.map(teacher => (
+                        <SelectItem key={teacher.id} value={String(teacher.id)}>{getTeacherDisplayName(teacher)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Courses & Teachers</h3>
+                  <h3 className="text-lg font-semibold">Courses</h3>
                   <Button variant="outline" size="sm" onClick={addCourseTeacherPair} className="cursor-pointer">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Course
@@ -301,7 +361,7 @@ export default function EnrollmentsPage() {
                 </div>
 
                 {courseTeacherPairs.map((pair, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg relative">
+                  <div key={index} className="grid grid-cols-1 gap-4 p-4 border rounded-lg relative">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -324,20 +384,6 @@ export default function EnrollmentsPage() {
                         </SelectContent>
                       </Select>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor={`teacher-${index}`}>Teacher</Label>
-                      <Select value={pair.teacherId} onValueChange={(value) => updateCourseTeacherPair(index, 'teacherId', value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select teacher" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {teachers.map(teacher => (
-                            <SelectItem key={teacher.id} value={String(teacher.id)}>{getTeacherDisplayName(teacher)}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </div>
                 ))}
 
@@ -349,10 +395,10 @@ export default function EnrollmentsPage() {
               </div>
 
               <div className="flex gap-2 pt-4">
-                <Button onClick={handleAddEnrollment} className="flex-1" disabled={courseTeacherPairs.length === 0}>
+                <Button onClick={handleAddEnrollment} className="flex-1" disabled={courseTeacherPairs.length === 0 || !formData.teacherId}>
                   Add Enrollment(s)
                 </Button>
-                <Button variant="outline" onClick={() => { setShowAddForm(false); setFormData({ year: "", section: "" }); setCourseTeacherPairs([]); }} className="flex-1">
+                <Button variant="outline" onClick={() => { setShowAddForm(false); setFormData({ year: "", section: "", teacherId: "" }); setCourseTeacherPairs([]); }} className="flex-1">
                   Cancel
                 </Button>
               </div>

@@ -57,7 +57,6 @@ interface SidebarProps {
   onToggle?: () => void;
   onMobileClose?: () => void;
   isMobile?: boolean;
-  onTemplateSelect?: (template: any) => void;
 }
 
 interface NavItem {
@@ -67,7 +66,6 @@ interface NavItem {
   badge?: number;
   badgeColor?: string;
   description?: string;
-  isTemplatesButton?: boolean;
 }
 
 // Mock data
@@ -80,7 +78,6 @@ export const AdminSidebar: React.FC<SidebarProps> = ({
   onToggle,
   isMobile = false,
   onMobileClose,
-  onTemplateSelect,
 }) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -103,10 +100,9 @@ export const AdminSidebar: React.FC<SidebarProps> = ({
     },
     {
       title: t('sidebar.templates', 'Templates'),
-      href: "#", // Use placeholder href since we handle click manually
+      href: "/dashboard/student/templates",
       icon: FileText,
       description: t('sidebar.templatesDesc', 'View all templates'),
-      isTemplatesButton: true, // Special flag for templates button
     },
     {
       title: t('dashboard.settings', 'Settings'),
@@ -135,15 +131,8 @@ export const AdminSidebar: React.FC<SidebarProps> = ({
     if (isMobile && onMobileClose) {
       onMobileClose();
     }
-    
-    // Special handling for Templates button - show all templates in main area
-    if (item.isTemplatesButton) {
-      onTemplateSelect?.({ showAllTemplates: true });
-      return;
-    }
-    
     router.push(item.href);
-  }, [isMobile, onMobileClose, router, onTemplateSelect]);
+  }, [isMobile, onMobileClose, router]);
 
   const toggleTheme = useCallback(() => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -218,35 +207,6 @@ export const AdminSidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* User Profile - Like Login Page Avatar Style */}
-      <div className={cn(
-        "p-4 border-b border-amber-200/50 dark:border-amber-800/50",
-        !isOpen && "text-center"
-      )}>
-        <div className={cn(
-          "flex items-center",
-          isOpen ? "gap-3" : "flex-col gap-2"
-        )}>
-          <div className="relative">
-            <Avatar className={cn(
-              "ring-2 ring-amber-500/30",
-              isOpen ? "h-12 w-12" : "h-10 w-10"
-            )}>
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback className="bg-linear-to-br from-amber-400 to-rose-500 text-white">
-                AK
-              </AvatarFallback>
-            </Avatar>
-            <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-background" />
-          </div>
-          {isOpen && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Dr. Abebe Kebede</p>
-              <p className="text-xs text-muted-foreground truncate">{t('roles.admin', 'Administrator')}</p>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-thin scrollbar-thumb-amber-200 dark:scrollbar-thumb-amber-800">

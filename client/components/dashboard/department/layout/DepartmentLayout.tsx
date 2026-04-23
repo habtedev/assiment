@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { AdminSidebar } from "./sidebar";
 import { StudentHeader } from "./header";
-// import { Rightbar } from "./Rightbar";
+import { Rightbar } from "./Rightbar";
 import { MobileNav } from "./mobileNav";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -266,37 +266,6 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
           {/* Main Content */}
           <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-6">
-              {/* Welcome Banner */}
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-rose-500/10 dark:from-amber-500/5 dark:to-rose-500/5 border border-amber-200/50 dark:border-gray-800 backdrop-blur-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-rose-600 rounded-full blur-md opacity-40 animate-pulse" />
-                    <Sparkles className="relative h-5 w-5 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-medium">Welcome back, student</h2>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date().toLocaleDateString("en-US", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="rounded-full gap-1">
-                    <Zap className="h-3 w-3 text-amber-500" />
-                    <span>System Ready</span>
-                  </Badge>
-                </div>
-              </motion.div>
-
               {/* Page Content */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -309,7 +278,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
           </main>
 
           {/* Rightbar */}
-          {/* <Rightbar /> */}
+          <Rightbar />
 
           {/* Enhanced Footer */}
           <footer className={cn(

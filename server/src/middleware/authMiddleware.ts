@@ -6,12 +6,16 @@ export interface AuthRequest extends Request {
   user?: {
     userId: number;
     role: string;
+    isStudent?: boolean;
+    isTeacher?: boolean;
   };
 }
 
 interface JwtUserPayload extends jwt.JwtPayload {
   userId: number;
   role: string;
+  isStudent?: boolean;
+  isTeacher?: boolean;
 }
 export function authenticateJWT(
   req: AuthRequest,
@@ -47,10 +51,24 @@ export function authenticateJWT(
     const decoded = jwt.verify(token, secret) as JwtUserPayload;
     console.log('[AUTH] Decoded JWT:', decoded);
 
-    req.user = {
+    const user: {
+      userId: number;
+      role: string;
+      isStudent?: boolean;
+      isTeacher?: boolean;
+    } = {
       userId: decoded.userId,
       role: decoded.role,
     };
+
+    if (decoded.isStudent !== undefined) {
+      user.isStudent = decoded.isStudent;
+    }
+    if (decoded.isTeacher !== undefined) {
+      user.isTeacher = decoded.isTeacher;
+    }
+
+    req.user = user;
 
     next();
   } catch (error) {

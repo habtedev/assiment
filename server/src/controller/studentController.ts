@@ -214,3 +214,81 @@ export const getDepartments = async (req: AuthRequest, res: Response) => {
     res.status(400).json({ error: 'Failed to fetch departments', details: error instanceof Error ? error.message : error });
   }
 };
+
+// Get teachers by year and section (for students - only enrolled teachers)
+export const getTeachersByYearAndSection = async (req: AuthRequest, res: Response) => {
+  try {
+    const { year, section } = req.query;
+
+    if (!year || !section) {
+      return res.status(400).json({ error: 'Year and section are required' });
+    }
+
+    // Get enrollments for this year and section
+    const enrollments = await prisma.enrollment.findMany({
+      where: {
+        year: year as string,
+        section: section as string,
+      },
+      include: {
+        teacher: {
+          include: {
+            department: true,
+          },
+        },
+      },
+    });
+
+    // Get unique teachers from enrollments
+    const teachersMap = new Map();
+    enrollments.forEach(enrollment => {
+      if (enrollment.teacher) {
+        teachersMap.set(enrollment.teacher.id, enrollment.teacher);
+      }
+    });
+
+    const teachers = Array.from(teachersMap.values());
+
+    res.json(teachers);
+  } catch (error) {
+    console.error('[GET TEACHERS BY YEAR AND SECTION ERROR]', error);
+    res.status(400).json({ error: 'Failed to fetch teachers', details: error instanceof Error ? error.message : error });
+  }
+};
+
+// Get all teachers in department (for department admin to create enrollments)
+export const getAllTeachersInDepartment = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+
+    // Get user's department
+    let departmentId = null;
+    if (userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { department: true },
+      });
+      if (user?.department) {
+        departmentId = user.department.id;
+      }
+    }
+
+    // Get all teachers from the department
+    const where: any = {};
+    if (departmentId) {
+      where.departmentId = departmentId;
+    }
+
+    const teachers = await prisma.teacher.findMany({
+      where,
+      include: {
+        department: true,
+      },
+    });
+
+    res.json(teachers);
+  } catch (error) {
+    console.error('[GET ALL TEACHERS IN DEPARTMENT ERROR]', error);
+    res.status(400).json({ error: 'Failed to fetch teachers', details: error instanceof Error ? error.message : error });
+  }
+};

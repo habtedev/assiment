@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Menu,
@@ -38,6 +38,8 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "@/components/shared/header/ThemeToggle";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { logout } from "@/lib/auth";
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -51,17 +53,21 @@ interface AdminHeaderProps {
 export const StudentHeader: React.FC<AdminHeaderProps> = ({
   onMenuClick,
   isSidebarOpen,
-  userName = "Dr. Abebe Kebede",
-  userEmail = "abebe.kebede@uog.edu.et",
-  userAvatar,
   notificationCount = 3,
 }) => {
   const [isOnline, setIsOnline] = useState(true);
   const pathname = usePathname();
+  const router = useRouter();
   const { toast } = useToast();
+  const { user: currentUser } = useCurrentUser();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Use real user data
+  const displayUserName = currentUser?.name || "Student";
+  const displayUserEmail = currentUser?.email || "student@example.com";
+  const displayUserAvatar = currentUser?.avatar;
 
   // Handle scroll effect
   useEffect(() => {
@@ -251,14 +257,14 @@ export const StudentHeader: React.FC<AdminHeaderProps> = ({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 pl-1 pr-3 rounded-full hover:bg-amber-100/50 dark:hover:bg-amber-900/30 hidden sm:flex items-center gap-2">
                 <Avatar className="h-8 w-8 ring-2 ring-amber-500/30">
-                  <AvatarImage src={userAvatar} />
+                  <AvatarImage src={displayUserAvatar} />
                   <AvatarFallback className="bg-gradient-to-br from-amber-400 to-rose-500 text-white">
-                    {userName.split(" ").map(n => n[0]).join("")}
+                    {displayUserName.split(" ").map(n => n[0]).join("")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden lg:block text-left">
-                  <p className="text-sm font-medium">{userName}</p>
-                  <p className="text-xs text-muted-foreground">Administrator</p>
+                  <p className="text-sm font-medium">{displayUserName}</p>
+                  <p className="text-xs text-muted-foreground">Student</p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground hidden lg:block" />
               </Button>
@@ -266,8 +272,8 @@ export const StudentHeader: React.FC<AdminHeaderProps> = ({
             <DropdownMenuContent align="end" className="w-56 rounded-xl">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
-                  <span className="font-medium">{userName}</span>
-                  <span className="text-xs text-muted-foreground">{userEmail}</span>
+                  <span className="font-medium">{displayUserName}</span>
+                  <span className="text-xs text-muted-foreground">{displayUserEmail}</span>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -284,7 +290,10 @@ export const StudentHeader: React.FC<AdminHeaderProps> = ({
                 Help
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer gap-2 text-rose-600">
+              <DropdownMenuItem className="cursor-pointer gap-2 text-rose-600" onClick={() => {
+                logout();
+                window.location.href = "/";
+              }}>
                 <LogOut className="h-4 w-4" />
                 Logout
               </DropdownMenuItem>
@@ -292,14 +301,6 @@ export const StudentHeader: React.FC<AdminHeaderProps> = ({
           </DropdownMenu>
         </div>
       </div>
-
-      {/* Progress Bar - Like Login Page */}
-      <motion.div
-        className="h-0.5 bg-gradient-to-r from-amber-500 to-rose-500"
-        initial={{ width: "0%" }}
-        animate={{ width: "65%" }}
-        transition={{ duration: 1, delay: 0.5 }}
-      />
     </motion.header>
   );
 };

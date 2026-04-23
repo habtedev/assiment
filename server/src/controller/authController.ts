@@ -46,15 +46,32 @@ export const registerCollege = async (req: any, res: Response) => {
 export const registerDepartment = async (req: any, res: Response) => {
   try {
     const { departmentName } = req.body;
-    const collegeId = req.user?.userId ? (await prisma.user.findUnique({ where: { id: req.user.userId } }))?.collegeId : null;
-    if (!collegeId) return res.status(400).json({ error: 'College not found for user' });
+    const userId = req.user?.userId;
+
+    if (!userId) return res.status(400).json({ error: 'User not authenticated' });
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.collegeId) {
+      return res.status(400).json({ error: 'College not found for user' });
+    }
+
     // Create the department under the college
     const department = await prisma.department.create({
       data: {
         name: departmentName,
-        collegeId,
+        collegeId: user.collegeId,
       },
     });
+
+    // Assign the user to the department
+    await prisma.user.update({
+      where: { id: userId },
+      data: { departmentId: department.id },
+    });
+
     res.status(201).json({ message: 'Department registered', department });
   } catch (error) {
     res.status(400).json({ error: 'Department registration failed', details: error });
@@ -214,10 +231,82 @@ export const login = async (req: Request, res: Response) => {
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
+    const isStudent = req.user?.isStudent;
+    const isTeacher = req.user?.isTeacher;
+
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
+    // Check if user is a student
+    if (isStudent) {
+      const student = await prisma.student.findUnique({
+        where: { id: userId },
+        include: {
+          department: {
+            include: {
+              college: true,
+            },
+          },
+        },
+      });
+
+      if (!student) {
+        return res.status(404).json({ error: 'Student not found' });
+      }
+
+      // Create user-like object for student
+      const studentUser = {
+        id: student.id,
+        email: student.email,
+        name: student.name,
+        year: student.year,
+        section: student.sections,
+        role: { name: student.role || 'STUDENT' },
+        college: student.department?.college || null,
+        department: student.department,
+        isStudent: true,
+      };
+
+      const { password: studentPassword, ...studentWithoutPassword } = student;
+      res.json(studentUser);
+      return;
+    }
+
+    // Check if user is a teacher
+    if (isTeacher) {
+      const teacher = await prisma.teacher.findUnique({
+        where: { id: userId },
+        include: {
+          department: {
+            include: {
+              college: true,
+            },
+          },
+        },
+      });
+
+      if (!teacher) {
+        return res.status(404).json({ error: 'Teacher not found' });
+      }
+
+      // Create user-like object for teacher
+      const teacherUser = {
+        id: teacher.id,
+        email: teacher.email,
+        name: teacher.name,
+        role: { name: teacher.role || 'TEACHER' },
+        college: teacher.department?.college || null,
+        department: teacher.department,
+        isTeacher: true,
+      };
+
+      const { password: teacherPassword, ...teacherWithoutPassword } = teacher;
+      res.json(teacherUser);
+      return;
+    }
+
+    // Regular user from User table
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {

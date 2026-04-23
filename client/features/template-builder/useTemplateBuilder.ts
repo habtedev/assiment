@@ -145,7 +145,6 @@ export function useTemplateBuilder(initialData?: Partial<TemplateFormState>, isE
       toast({
         title: 'Validation Error',
         description: errorMsg,
-        variant: 'destructive',
       });
       // Remove failed/invalid template from state if present (for add mode)
       if (!isEdit) {

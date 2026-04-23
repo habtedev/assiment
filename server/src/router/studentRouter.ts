@@ -7,6 +7,8 @@ import {
   deleteStudent,
   getDepartments,
   getSectionsByYear,
+  getTeachersByYearAndSection,
+  getAllTeachersInDepartment,
 } from '../controller/studentController';
 import { authenticateJWT } from '../middleware/authMiddleware';
 
@@ -23,6 +25,12 @@ router.get('/', authenticateJWT, getStudents);
 
 // Get sections by year
 router.get('/sections', authenticateJWT, getSectionsByYear);
+
+// Get teachers by year and section (for students - only enrolled teachers)
+router.get('/teachers', authenticateJWT, getTeachersByYearAndSection);
+
+// Get all teachers in department (for department admin)
+router.get('/teachers/all', authenticateJWT, getAllTeachersInDepartment);
 
 // Get a single student by ID
 router.get('/:id', authenticateJWT, getStudentById);

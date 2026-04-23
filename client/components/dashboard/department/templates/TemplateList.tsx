@@ -1,441 +1,747 @@
 "use client";
 
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
-  FileText,
   Calendar,
-  Users,
   Clock,
-  CheckCircle2,
-  XCircle,
-  ArrowRight,
   MoreVertical,
+  FileQuestion,
+  BookOpen,
+  Users,
+  Layout,
+  AlertCircle,
+  Timer,
+  Plus,
+  Sparkles,
+  TrendingUp,
+  Award,
+  Zap,
+  ChevronRight,
+  BarChart3,
+  ShieldCheck,
+  Star,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-// Mock data for templates
-const templates = [
-  {
-    id: 1,
-    title: "Student Registration Form",
-    description: "New student enrollment and registration",
-    type: "form",
-    status: "active",
-    progress: 100,
-    responses: 1250,
-    createdAt: "2024-01-15",
-    deadline: null,
-    icon: FileText
-  },
-  {
-    id: 2,
-    title: "Course Syllabus Template",
-    description: "Standard course syllabus format",
-    type: "document",
-    status: "completed",
-    progress: 100,
-    responses: 890,
-    createdAt: "2024-01-20",
-    deadline: null,
-    icon: FileText
-  },
-  {
-    id: 3,
-    title: "Exam Schedule",
-    description: "Semester examination schedule",
-    type: "calendar",
-    status: "pending",
-    progress: 60,
-    responses: 450,
-    createdAt: "2024-02-01",
-    deadline: "3 days",
-    icon: Calendar
-  },
-  {
-    id: 4,
-    title: "Grade Report",
-    description: "Student grade evaluation report",
-    type: "analytics",
-    status: "active",
-    progress: 85,
-    responses: 680,
-    createdAt: "2024-02-10",
-    deadline: null,
-    icon: FileText
-  },
-  {
-    id: 5,
-    title: "Teacher Evaluation",
-    description: "Faculty performance assessment",
-    type: "form",
-    status: "pending",
-    progress: 45,
-    responses: 320,
-    createdAt: "2024-02-15",
-    deadline: null,
-    icon: Users
-  },
-  {
-    id: 6,
-    title: "Course Feedback",
-    description: "Student course feedback form",
-    type: "form",
-    status: "active",
-    progress: 75,
-    responses: 540,
-    createdAt: "2024-02-20",
-    deadline: "5 days",
-    icon: FileText
-  },
-  {
-    id: 7,
-    title: "Attendance Tracker",
-    description: "Daily attendance monitoring",
-    type: "analytics",
-    status: "completed",
-    progress: 100,
-    responses: 1100,
-    createdAt: "2024-03-01",
-    deadline: null,
-    icon: Clock
-  },
-  {
-    id: 8,
-    title: "Assignment Submission",
-    description: "Student assignment tracking",
-    type: "form",
-    status: "pending",
-    progress: 30,
-    responses: 280,
-    createdAt: "2024-03-05",
-    deadline: null,
-    icon: FileText
-  },
+/* ---------------------------------------------
+   UTIL & CONSTANTS
+----------------------------------------------*/
+const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(" ");
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8500";
+
+// Gradient mapping for card headers
+const GRADIENTS = [
+  "from-violet-500 to-indigo-500",
+  "from-emerald-500 to-teal-500",
+  "from-rose-500 to-pink-500",
+  "from-amber-500 to-orange-500",
+  "from-sky-500 to-blue-500",
+  "from-purple-500 to-fuchsia-500",
 ];
 
-export default function TemplateList() {
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dayCount, setDayCount] = useState("");
-  const [timeValue, setTimeValue] = useState("");
-  const [templatesData, setTemplatesData] = useState(templates);
-  const [countdowns, setCountdowns] = useState<{ [key: number]: { days: number; hours: number; minutes: number; seconds: number } }>({});
-  const [deadlineSetTimes, setDeadlineSetTimes] = useState<{ [key: number]: Date }>(() => {
-    const initialTimes: { [key: number]: Date } = {};
-    templates.filter(t => t.deadline).forEach(t => {
-      initialTimes[t.id] = new Date(); // Set to now for existing deadlines
-    });
-    return initialTimes;
-  });
+/* ---------------------------------------------
+   COUNTDOWN COMPONENT - Premium Version
+----------------------------------------------*/
+function Countdown({ deadline, compact = false }: { deadline: string; compact?: boolean }) {
+  const [timeLeft, setTimeLeft] = useState("");
 
-  // Calculate countdown for each template with deadline
-  React.useEffect(() => {
-    const templatesWithDeadlines = templatesData.filter(t => t.deadline);
-    if (templatesWithDeadlines.length === 0) {
-      setCountdowns({});
-      return;
+  const calculate = useCallback(() => {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    const diff = deadlineDate.getTime() - now.getTime();
+
+    if (diff <= 0) return "Expired";
+
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const m = Math.floor((diff / (1000 * 60)) % 60);
+    const s = Math.floor((diff / 1000) % 60);
+
+    if (compact) {
+      if (d > 0) return `${d}d ${h}h`;
+      if (h > 0) return `${h}h ${m}m`;
+      return `${m}m ${s}s`;
     }
 
-    const calculateCountdowns = () => {
-      const now = new Date();
-      const newCountdowns: { [key: number]: { days: number; hours: number; minutes: number; seconds: number } } = {};
+    return `${d}d ${h}h ${m}m ${s}s`;
+  }, [deadline, compact]);
 
-      templatesWithDeadlines.forEach(template => {
-        const days = parseInt(template.deadline?.split(" ")[0] || "0");
-        // Get or create the deadline set time
-        const setTime = deadlineSetTimes[template.id] || new Date();
+  useEffect(() => {
+    setTimeLeft(calculate());
 
-        const deadlineDate = new Date(setTime.getTime() + days * 24 * 60 * 60 * 1000);
-        const diff = deadlineDate.getTime() - now.getTime();
+    const timer = setInterval(() => {
+      setTimeLeft(calculate());
+    }, 1000);
 
-        if (diff > 0) {
-          const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-          const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          const s = Math.floor((diff % (1000 * 60)) / 1000);
+    return () => clearInterval(timer);
+  }, [calculate]);
 
-          newCountdowns[template.id] = { days: d, hours: h, minutes: m, seconds: s };
-        }
+  const expired = timeLeft === "Expired";
+
+  if (expired) {
+    return (
+      <div className="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-950/40 px-3 py-1 text-xs font-semibold text-red-600 dark:text-red-400 backdrop-blur-sm">
+        <Timer className="h-3 w-3" />
+        Expired
+      </div>
+    );
+  }
+
+  return (
+    <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 px-3 py-1 text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 backdrop-blur-sm border border-indigo-200/50 dark:border-indigo-500/30">
+      <Zap className="h-3 w-3" />
+      {timeLeft}
+    </div>
+  );
+}
+
+/* ---------------------------------------------
+   STAT CARD COMPONENT
+----------------------------------------------*/
+function StatCard({ label, value, icon: Icon, trend, color }: { label: string; value: string | number; icon: React.ElementType; trend?: string; color: string }) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 backdrop-blur-xl p-5 transition-all hover:shadow-xl hover:scale-[1.02]">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gray-50 to-transparent dark:from-gray-800/50 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+      
+      <div className="relative">
+        <div className={cn("inline-flex rounded-xl p-2.5 mb-3", color)}>
+          <Icon className="h-5 w-5" />
+        </div>
+        
+        <div className="flex items-baseline justify-between">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+            {label}
+          </p>
+          {trend && (
+            <span className="inline-flex items-center gap-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              <TrendingUp className="h-3 w-3" />
+              {trend}
+            </span>
+          )}
+        </div>
+        
+        <p className="mt-2 text-3xl font-black bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------
+   MAIN COMPONENT
+----------------------------------------------*/
+export default function TemplateDashboard() {
+  const router = useRouter();
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+
+  const [dayCount, setDayCount] = useState("1");
+  const [timeValue, setTimeValue] = useState("23:59");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+
+  /* ---------------------------------------------
+     FETCH REAL DATA
+  ----------------------------------------------*/
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/api/templates`, {
+        credentials: "include",
       });
+      if (!res.ok) throw new Error("Failed to load");
+      const data = await res.json();
+      setTemplates(data || []);
+    } catch (error) {
+      console.error(error);
+      setTemplates([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      setCountdowns(newCountdowns);
+  /* ---------------------------------------------
+     MEMO DATA
+  ----------------------------------------------*/
+  const isExpired = (template: any) => {
+    if (!template.deadline) return false;
+    return new Date(template.deadline) < new Date();
+  };
+
+  const templatesWithDeadlines = useMemo(
+    () => templates.filter((t) => t.deadline && !isExpired(t)),
+    [templates]
+  );
+
+  const filteredTemplates = useMemo(() => {
+    if (statusFilter === "all") return templates;
+    if (statusFilter === "active") return templates.filter((t) => t.status === "active" && !isExpired(t));
+    if (statusFilter === "inactive") return templates.filter((t) => t.status === "inactive" || t.status === "draft" || isExpired(t));
+    return templates;
+  }, [templates, statusFilter]);
+
+  const stats = useMemo(() => {
+    return {
+      total: templates.length,
+      active: templates.filter((t) => t.status === "active" && !isExpired(t)).length,
+      draft: templates.filter((t) => t.status === "draft" || t.status === "inactive" || isExpired(t)).length,
+      responses: templates.reduce(
+        (sum, t) => sum + Number(t.responses || 0),
+        0
+      ),
+      completionRate: templates.length > 0
+        ? Math.round((templates.filter(t => t.status === "active" && !isExpired(t)).length / templates.length) * 100)
+        : 0,
     };
+  }, [templates]);
 
-    calculateCountdowns();
-    const interval = setInterval(calculateCountdowns, 1000);
+  /* ---------------------------------------------
+     HELPERS
+  ----------------------------------------------*/
+  const formatTitle = (template: any) => {
+    if (typeof template.title === "string" && template.title.trim()) return template.title;
+    if (typeof template.name === "string" && template.name.trim()) return template.name;
+    return "Untitled Template";
+  };
 
-    return () => clearInterval(interval);
-  }, [templatesData, deadlineSetTimes]);
+  const formatDescription = (template: any) => {
+    if (typeof template.description === "string" && template.description.trim())
+      return template.description;
+    return "No description available";
+  };
 
-  const handleSetTime = (template: any) => {
+  const formatDate = (iso: string) => {
+    if (!iso) return "";
+    return new Date(iso).toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const getProgress = (template: any) => {
+    if (!template.deadline || !template.createdAt) return 0;
+    const start = new Date(template.createdAt).getTime();
+    const end = new Date(template.deadline).getTime();
+    const now = Date.now();
+    const total = end - start;
+    const elapsed = now - start;
+    if (total <= 0) return 0;
+    return Math.min(100, Math.max(0, (elapsed / total) * 100));
+  };
+
+  const getTemplateStatus = (template: any) => {
+    if (template.status === "draft" || template.status === "inactive") return "Draft";
+    if (isExpired(template)) return "Expired";
+    return "Active";
+  };
+
+  /* ---------------------------------------------
+     OPEN DIALOG
+  ----------------------------------------------*/
+  const handleOpenDialog = (template: any) => {
     setSelectedTemplate(template);
     if (template.deadline) {
-      const parts = template.deadline.split(" ");
-      setDayCount(parts[0] || "");
-      setTimeValue(template.deadline.includes("at") ? parts[parts.length - 1] : "");
+      const d = new Date(template.deadline);
+      const diffDays = Math.max(0, Math.ceil((d.getTime() - Date.now()) / 86400000));
+      setDayCount(String(diffDays));
+      setTimeValue(`${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);
     } else {
-      setDayCount("");
-      setTimeValue("");
+      setDayCount("1");
+      setTimeValue("23:59");
     }
     setIsDialogOpen(true);
   };
 
-  const handleSaveTime = () => {
-    if (selectedTemplate && dayCount) {
-      const updatedTemplates = templatesData.map((t) =>
-        t.id === selectedTemplate.id
-          ? { ...t, deadline: `${dayCount} days${timeValue ? ` at ${timeValue}` : ""}` }
-          : t
-      );
-      setTemplatesData(updatedTemplates);
-      // Record when the deadline was set
-      setDeadlineSetTimes(prev => ({
-        ...prev,
-        [selectedTemplate.id]: new Date()
-      }));
-    }
-    setIsDialogOpen(false);
+  const handleViewTemplate = (templateId: string | number) => {
+    router.push(`/dashboard/department/templates/${templateId}`);
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Templates</h2>
-          <p className="text-muted-foreground">Manage department templates</p>
+  /* ---------------------------------------------
+     SAVE DEADLINE REAL API
+  ----------------------------------------------*/
+  const handleSaveDeadline = async () => {
+    if (!selectedTemplate) return;
+
+    const newDeadline = new Date();
+    newDeadline.setDate(newDeadline.getDate() + Number(dayCount));
+
+    const [h, m] = timeValue.split(":");
+    newDeadline.setHours(Number(h), Number(m), 0, 0);
+
+    const deadlineISO = newDeadline.toISOString();
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/templates/${selectedTemplate.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          deadline: deadlineISO,
+          status: "active"
+        }),
+      });
+
+      const responseData = await res.json();
+      if (!res.ok) throw new Error(responseData.error || "Update failed");
+
+      setTemplates((prev) =>
+        prev.map((item: any) =>
+          item.id === selectedTemplate.id
+            ? { ...item, deadline: deadlineISO, status: "active" }
+            : item
+        )
+      );
+
+      setIsDialogOpen(false);
+      alert("Deadline updated and template is now active!");
+    } catch (error) {
+      console.error("Error updating deadline:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to update deadline: ${errorMessage}`);
+    }
+  };
+
+  /* ---------------------------------------------
+     LOADING
+  ----------------------------------------------*/
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-slate-900 dark:to-gray-950 flex items-center justify-center">
+        <div className="space-y-4 text-center">
+          <div className="relative">
+            <div className="h-16 w-16 mx-auto rounded-2xl border-4 border-gray-200 border-t-indigo-600 dark:border-gray-700 dark:border-t-indigo-500 animate-spin" />
+            <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-5 w-5 text-indigo-500 animate-pulse" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Loading templates
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Please wait while we fetch your data
+            </p>
+          </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Countdown Timers */}
-      {Object.keys(countdowns).length > 0 && (
-        <div className="bg-gradient-to-r from-amber-50 to-rose-50 dark:from-amber-900/30 dark:to-rose-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-4">
-            <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+  /* ---------------------------------------------
+     UI - Premium E-commerce Style
+  ----------------------------------------------*/
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-slate-900 dark:to-gray-950">
+      {/* Hero Banner */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-500 dark:via-purple-500 dark:to-pink-500">
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}
+        />
+        
+        <div className="relative max-w-7xl mx-auto px-6 py-12 md:py-16">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <p className="font-semibold text-amber-900 dark:text-amber-100">Template Deadline Countdowns</p>
-              <p className="text-sm text-amber-700 dark:text-amber-300">Time remaining for each template deadline</p>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm mb-4">
+                <Sparkles className="h-3.5 w-3.5 text-white" />
+                <span className="text-xs font-semibold text-white tracking-wide">
+                  ASSESSMENT HUB
+                </span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+                Templates
+              </h1>
+              <p className="text-indigo-100 mt-2 text-base">
+                Manage your assessment templates and deadlines efficiently
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2">
+                <div className="text-2xl font-bold text-white">{templates.length}</div>
+                <div className="text-xs text-indigo-200">Total Templates</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2">
+                <div className="text-2xl font-bold text-white">{stats.active}</div>
+                <div className="text-xs text-indigo-200">Active</div>
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {templatesData.filter(t => t.deadline && countdowns[t.id]).map(template => (
-              <div key={template.id} className="bg-white dark:bg-black rounded-lg p-3 border border-amber-200 dark:border-amber-800">
-                <div className="font-medium text-sm text-amber-900 dark:text-amber-100 mb-2">{template.title}</div>
-                <div className="flex gap-2 text-center">
-                  <div className="flex-1">
-                    <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">{countdowns[template.id].days}</div>
-                    <div className="text-xs text-amber-700 dark:text-amber-300">Days</div>
-                  </div>
-                  <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">:</div>
-                  <div className="flex-1">
-                    <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">{countdowns[template.id].hours}</div>
-                    <div className="text-xs text-amber-700 dark:text-amber-300">Hours</div>
-                  </div>
-                  <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">:</div>
-                  <div className="flex-1">
-                    <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">{countdowns[template.id].minutes}</div>
-                    <div className="text-xs text-amber-700 dark:text-amber-300">Min</div>
-                  </div>
-                  <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">:</div>
-                  <div className="flex-1">
-                    <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">{countdowns[template.id].seconds}</div>
-                    <div className="text-xs text-amber-700 dark:text-amber-300">Sec</div>
-                  </div>
+        </div>
+        
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-gray-50 dark:from-gray-950 to-transparent" />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 pb-8 -mt-8">
+        {/* STATS SECTION - Premium Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <StatCard 
+            label="Total Templates" 
+            value={stats.total} 
+            icon={Layout}
+            color="bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400"
+          />
+          <StatCard 
+            label="Active" 
+            value={stats.active} 
+            icon={Zap}
+            trend="+12%"
+            color="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400"
+          />
+          <StatCard 
+            label="Draft" 
+            value={stats.draft} 
+            icon={FileQuestion}
+            color="bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400"
+          />
+          <StatCard 
+            label="Total Responses" 
+            value={stats.responses} 
+            icon={Users}
+            trend="+8%"
+            color="bg-purple-50 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400"
+          />
+          <StatCard 
+            label="Completion Rate" 
+            value={`${stats.completionRate}%`} 
+            icon={TrendingUp}
+            color="bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
+          />
+        </div>
+
+        {/* ACTIVE DEADLINES SECTION */}
+        {templatesWithDeadlines.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500">
+                  <Timer className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Active Deadlines
+                  </h3>
+                  <p className="text-xs text-gray-400">{templatesWithDeadlines.length} templates expiring soon</p>
                 </div>
               </div>
-            ))}
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent mx-4" />
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {templatesWithDeadlines.slice(0, 3).map((template, idx) => (
+                <div
+                  key={template.id}
+                  className="group relative rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-4 hover:shadow-lg transition-all cursor-pointer"
+                  onClick={() => handleViewTemplate(template.id)}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                        {formatTitle(template)}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Calendar className="h-3 w-3 text-gray-400" />
+                        <p className="text-xs text-gray-500">{formatDate(template.deadline)}</p>
+                      </div>
+                    </div>
+                    <Countdown deadline={template.deadline} compact />
+                  </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:text-gray-400">
+                      <Users className="h-2.5 w-2.5" />
+                      {template.targetAudience || "Student"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TEMPLATES GRID - Premium Cards */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                All Templates
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Browse and manage your assessment templates
+              </p>
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs font-medium">
+              <Award className="h-3 w-3" />
+              {filteredTemplates.length} Available
+            </div>
+          </div>
+
+          {/* Filter Buttons */}
+          <div className="flex items-center gap-2 mb-5">
+            <button
+              onClick={() => setStatusFilter("all")}
+              className={cn(
+                "px-4 py-2 rounded-lg text-xs font-semibold transition-all",
+                statusFilter === "all"
+                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              )}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setStatusFilter("active")}
+              className={cn(
+                "px-4 py-2 rounded-lg text-xs font-semibold transition-all",
+                statusFilter === "active"
+                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              )}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => setStatusFilter("inactive")}
+              className={cn(
+                "px-4 py-2 rounded-lg text-xs font-semibold transition-all",
+                statusFilter === "inactive"
+                  ? "bg-gray-600 text-white shadow-lg shadow-gray-500/25"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              )}
+            >
+              Draft
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredTemplates.map((template, idx) => {
+              const progress = getProgress(template);
+              const gradientIndex = idx % GRADIENTS.length;
+              
+              return (
+                <div
+                  key={template.id}
+                  className="group relative rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden hover:-translate-y-1"
+                  onClick={() => handleViewTemplate(template.id)}
+                >
+                  {/* Gradient Top Bar */}
+                  <div className={`h-1.5 bg-gradient-to-r ${GRADIENTS[gradientIndex]}`} />
+
+                  <div className="p-5">
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-4">
+                      <div
+                        className={cn(
+                          "p-2.5 rounded-xl transition-all",
+                          getTemplateStatus(template) === "Active"
+                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400"
+                            : getTemplateStatus(template) === "Expired"
+                            ? "bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400"
+                            : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                        )}
+                      >
+                        {getTemplateStatus(template) === "Expired" ? (
+                          <Timer className="h-4 w-4" />
+                        ) : (
+                          <FileQuestion className="h-4 w-4" />
+                        )}
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDialog(template);
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <MoreVertical className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Content */}
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 line-clamp-1">
+                        {formatTitle(template)}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5 line-clamp-2 leading-relaxed">
+                        {formatDescription(template)}
+                      </p>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1.5 mt-4">
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <Calendar className="h-3 w-3" />
+                        {template.academicYear || "N/A"}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 px-2 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                        <BookOpen className="h-3 w-3" />
+                        {template.semester || "General"}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-purple-50 dark:bg-purple-950/30 px-2 py-1 text-xs font-medium text-purple-600 dark:text-purple-400">
+                        <Users className="h-3 w-3" />
+                        {template.targetAudience || "Student"}
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    {template.deadline && (
+                      <div className="mt-4 space-y-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-400">Deadline</span>
+                          <span className={cn(
+                            "font-semibold",
+                            isExpired(template) ? "text-red-500" : progress > 80 ? "text-red-500" : "text-indigo-600 dark:text-indigo-400"
+                          )}>
+                            {isExpired(template) ? "Expired" : `${Math.round(progress)}%`}
+                          </span>
+                        </div>
+                        <div className="relative h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                          <div
+                            className={cn(
+                              "absolute h-full rounded-full transition-all duration-500",
+                              isExpired(template)
+                                ? "bg-red-500"
+                                : progress > 80
+                                ? "bg-gradient-to-r from-red-500 to-orange-500"
+                                : "bg-gradient-to-r from-indigo-500 to-purple-500"
+                            )}
+                            style={{ width: isExpired(template) ? "100%" : `${progress}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-400">{formatDate(template.deadline)}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 px-5 py-3 flex items-center justify-between">
+                    <div className="inline-flex items-center gap-1.5">
+                      <div className="inline-flex items-center gap-1.5 text-gray-500 text-sm">
+                        <Users className="h-3.5 w-3.5" />
+                        <span className="font-medium">{template.responses || 0}</span>
+                        <span className="text-xs text-gray-400">responses</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDialog(template);
+                      }}
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors group"
+                    >
+                      {isExpired(template) ? "Extend Deadline" : template.deadline ? "Manage Deadline" : "Set Deadline"}
+                      <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Empty State */}
+        {templates.length === 0 && (
+          <div className="text-center py-16">
+            <div className="inline-flex p-4 rounded-2xl bg-gray-100 dark:bg-gray-800 mb-4">
+              <FileQuestion className="h-12 w-12 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+              No templates yet
+            </h3>
+            <p className="text-sm text-gray-500">Get started by creating your first template</p>
+          </div>
+        )}
+      </div>
+
+      {/* DIALOG - Premium Modal */}
+      {isDialogOpen && selectedTemplate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsDialogOpen(false)}
+          />
+          
+          <div className="relative z-10 w-full max-w-md animate-in slide-in-from-bottom-10 duration-300">
+            <div className="rounded-2xl bg-white dark:bg-gray-900 shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
+              {/* Dialog Header */}
+              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
+                <h2 className="text-lg font-bold text-white">Set Deadline</h2>
+                <p className="text-indigo-100 text-xs mt-0.5">
+                  {formatTitle(selectedTemplate)}
+                </p>
+              </div>
+
+              {/* Dialog Content */}
+              <div className="p-6 space-y-5">
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
+                    Days from today
+                  </label>
+                  <select
+                    value={dayCount}
+                    onChange={(e) => setDayCount(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2.5 bg-gray-50 dark:bg-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
+                  >
+                    {[0, 1, 2, 3, 5, 7, 14, 30].map((n) => (
+                      <option key={n} value={n}>
+                        {n === 0 ? "Today" : `${n} Day${n > 1 ? "s" : ""}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
+                    Closing time
+                  </label>
+                  <input
+                    type="time"
+                    value={timeValue}
+                    onChange={(e) => setTimeValue(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2.5 bg-gray-50 dark:bg-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  />
+                </div>
+
+                <div className="rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 p-3 flex gap-2.5 border border-indigo-100 dark:border-indigo-800/50">
+                  <ShieldCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                  <p className="text-xs leading-relaxed text-indigo-700 dark:text-indigo-300">
+                    Participants will be notified automatically about the deadline change.
+                  </p>
+                </div>
+              </div>
+
+              {/* Dialog Footer */}
+              <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 px-6 py-4 flex justify-end gap-3">
+                <button
+                  onClick={() => setIsDialogOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveDeadline}
+                  className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2 text-sm font-semibold text-white hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg shadow-indigo-500/25"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
-
-      {/* Template Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{templatesData.length}</div>
-            <div className="text-sm text-muted-foreground">Total Templates</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-emerald-600">
-              {templatesData.filter(t => t.status === "completed").length}
-            </div>
-            <div className="text-sm text-muted-foreground">Completed</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-blue-600">
-              {templatesData.filter(t => t.status === "active").length}
-            </div>
-            <div className="text-sm text-muted-foreground">Active</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-amber-600">
-              {templatesData.filter(t => t.status === "pending").length}
-            </div>
-            <div className="text-sm text-muted-foreground">Pending</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Template List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {templatesData.map((template) => {
-          const Icon = template.icon;
-          return (
-            <Card key={template.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "p-2 rounded-lg",
-                      template.status === "completed" ? "bg-emerald-100 dark:bg-emerald-900/30" :
-                      template.status === "active" ? "bg-blue-100 dark:bg-blue-900/30" :
-                      "bg-amber-100 dark:bg-amber-900/30"
-                    )}>
-                      <Icon className={cn(
-                        "h-5 w-5",
-                        template.status === "completed" ? "text-emerald-600 dark:text-emerald-400" :
-                        template.status === "active" ? "text-blue-600 dark:text-blue-400" :
-                        "text-amber-600 dark:text-amber-400"
-                      )} />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">{template.title}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-xs",
-                            template.status === "completed" ? "border-emerald-200 text-emerald-700 dark:border-emerald-800 dark:text-emerald-300" :
-                            template.status === "active" ? "border-blue-200 text-blue-700 dark:border-blue-800 dark:text-blue-300" :
-                            "border-amber-200 text-amber-700 dark:border-amber-800 dark:text-amber-300"
-                          )}
-                        >
-                          {template.status}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">{template.type}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 cursor-pointer"
-                    onClick={() => handleSetTime(template)}
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">{template.description}</p>
-
-                {/* Timeline Display */}
-                {template.deadline && (
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between text-xs mb-2">
-                      <span className="text-muted-foreground">Timeline</span>
-                      <span className="text-amber-600 dark:text-amber-400 font-medium">{template.deadline}</span>
-                    </div>
-                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full transition-all duration-300"
-                        style={{ width: `${template.progress}%` }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-xs mt-1">
-                      <span className="text-muted-foreground">Created: {template.createdAt}</span>
-                      <span className="text-muted-foreground">{template.progress}% complete</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Stats */}
-                <div className="flex items-center justify-between mt-4 text-xs">
-                  <div className="flex items-center gap-1">
-                    <Users className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">{template.responses} responses</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-muted-foreground">{template.createdAt}</span>
-                  </div>
-                </div>
-
-                {/* Action Button */}
-                <Button
-                  variant="outline"
-                  className="w-full mt-4 gap-2"
-                  size="sm"
-                >
-                  View Details
-                  <ArrowRight className="h-3 w-3" />
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Time Setting Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Set Time for {selectedTemplate?.title}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="days">Duration (Days)</Label>
-              <Select value={dayCount} onValueChange={setDayCount}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 Day</SelectItem>
-                  <SelectItem value="2">2 Days</SelectItem>
-                  <SelectItem value="3">3 Days</SelectItem>
-                  <SelectItem value="4">4 Days</SelectItem>
-                  <SelectItem value="5">5 Days</SelectItem>
-                  <SelectItem value="7">7 Days</SelectItem>
-                  <SelectItem value="10">10 Days</SelectItem>
-                  <SelectItem value="14">14 Days</SelectItem>
-                  <SelectItem value="30">30 Days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="time">Time</Label>
-              <Input
-                id="time"
-                type="time"
-                value={timeValue}
-                onChange={(e) => setTimeValue(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveTime}>
-              Update
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

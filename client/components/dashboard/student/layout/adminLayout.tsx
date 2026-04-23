@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { AdminSidebar } from "./Sidebar";
 import { StudentHeader } from "./header";
-// import { Rightbar } from "./Rightbar";
+import { Rightbar } from "./Rightbar";
 import { MobileNav } from "./mobileNav";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,10 +19,9 @@ import { Progress } from "@/components/ui/progress";
 
 interface AdminDashboardLayoutProps {
   children: React.ReactNode;
-  onTemplateSelect?: (template: any) => void;
 }
 
-export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children, onTemplateSelect }) => {
+export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -207,10 +206,9 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
       <div className="flex h-screen overflow-hidden">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block h-full">
-          <AdminSidebar 
-            isOpen={sidebarOpen} 
-            onToggle={() => setSidebarOpen(!sidebarOpen)} 
-            onTemplateSelect={onTemplateSelect}
+          <AdminSidebar
+            isOpen={sidebarOpen}
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
           />
         </div>
 
@@ -309,7 +307,7 @@ export const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ chil
           </main>
 
           {/* Rightbar */}
-          {/* <Rightbar /> */}
+          <Rightbar />
 
           {/* Enhanced Footer */}
           <footer className={cn(
